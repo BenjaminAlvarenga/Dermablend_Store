@@ -6,15 +6,18 @@ import Contact from "./pages/Contact";
 import Home from "./pages/Home";
 import Nav from "./components/Nav";
 import ProductCard from "./components/ProductCard";
+import Sidebar from "./components/Sidebar";
 
 function App() {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
   return (
     <>
       <Router>
         <Nav />
         <div className="flex">
           <div className="sidebar">
-
+            <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
           </div>
           <Routes className="w-auto">
             <Route path="/" element={<Home />} />
