@@ -11,19 +11,19 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
 
   return (
     <div 
-      className={`fixed left-0 bg-[#E2BA7C] border-r border-gray-200 transition-all duration-300 z-40 
+      className={`fixed left-0 bg-[#E2BA7C] transition-all duration-300 z-40 
       ${isCollapsed ? "w-16" : "w-64"}`}
-      style={{ top: '119px', height: 'calc(100vh - 88px)' }} 
+      style={{ top: '80px', height: 'calc(180vh - 100px)' }} 
     >
       {/* Botón para colapsar usando un símbolo simple */}
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-5 bg-white text-black rounded-full w-6 h-6 flex items-center justify-center shadow-md text-xs font-bold"
+        className="absolute -right-3 top-9 bg-white text-black rounded-full w-6 h-6 flex items-center justify-center shadow-md text-xs font-bold"
       >
         {isCollapsed ? ">" : "<"}
       </button>
 
-      <nav className="mt-6 flex flex-col space-y-2 px-2">
+      <nav className="mt-14 flex flex-col space-y-2 px-2">
         {menuItems.map((item) => (
           <a
             key={item.name}

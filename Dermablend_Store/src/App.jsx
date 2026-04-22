@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Nav from "./components/Nav";
 import ProductCard from "./components/ProductCard";
 import Sidebar from "./components/Sidebar";
+import Dashcard from "./components/Dashcard";
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -20,7 +21,7 @@ function App() {
             <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
           </div>
           <Routes className="w-auto">
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home />}/>
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>
