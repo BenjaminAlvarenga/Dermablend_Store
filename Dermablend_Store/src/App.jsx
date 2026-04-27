@@ -19,12 +19,12 @@ function App() {
         <div className="flex">
           <div className="sidebar">
             <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
-          </div>
           <Routes className="w-auto">
-            <Route path="/" element={<Home />}/>
+            <Route path="/" element={<Home />, <Dashcard />}/>
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>
+          </div>
         </div>
       </Router>
     </>
