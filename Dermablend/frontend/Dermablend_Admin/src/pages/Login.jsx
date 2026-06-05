@@ -84,7 +84,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[url('.././img/background_img.png')] bg-cover bg-center px-4 py-10 flex items-center justify-end lg:pr-32">
+    <div className="min-h-screen bg-[url('.././img/background_img.png')] bg-cover bg-center px-4 py-10 flex items-center justify-center ">
       <div className="flex w-full lg:max-w-xl sm:max-w-lg flex-col gap-8 rounded-4xl bg-white p-6 shadow-xl shadow-slate-200/50 sm:items-center">
         <div className="w-full">
           <div className="max-w-xl">

@@ -1,0 +1,1 @@
+import customer from "../models/customer.js"
