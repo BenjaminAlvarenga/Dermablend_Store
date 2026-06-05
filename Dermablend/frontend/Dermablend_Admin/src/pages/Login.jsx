@@ -10,19 +10,19 @@ const users = [
     id: 1,
     email: 'john@gmail.com',
     username: 'johnd',
-    password: 'm38rmF$'
+    password: '12345'
   },
   {
     id: 2,
     email: 'morrison@gmail.com',
     username: 'mor_2314',
-    password: '83r5^_'
+    password: '12345'
   },
   {
     id: 3,
     email: 'kevin@gmail.com',
     username: 'kevinryan',
-    password: 'kev02937@'
+    password: '12345'
   }
 ]
 
@@ -84,8 +84,8 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8 flex items-center justify-center">
-      <div className="mx-auto flex w-full max-w-2xl h-125 flex-col gap-8 rounded-4xl bg-white p-6 shadow-xl shadow-slate-200/50 md:p-10 md:flex-row md:items-center">
+    <div className="min-h-screen bg-[url('.././img/background_img.png')] bg-cover bg-center px-4 py-10 flex items-center justify-end lg:pr-32">
+      <div className="flex w-full lg:max-w-xl sm:max-w-lg flex-col gap-8 rounded-4xl bg-white p-6 shadow-xl shadow-slate-200/50 sm:items-center">
         <div className="w-full">
           <div className="max-w-xl">
             <img src=".././img/Dermablend.png" alt="" />
@@ -93,13 +93,13 @@ const Login = () => {
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-slate-700">Email</label>
+              <label className="block text-sm font-medium text-slate-700">Correo electrónico</label>
               <input
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="usuario@dominio.com"
-                className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80] px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-white"
+                className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80]/70 px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-[#D3AB80]/50"
                 required
               />
             </div>
@@ -111,7 +111,7 @@ const Login = () => {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="********"
-                className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80] px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-white"
+                className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80]/70 px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-[#D3AB80]/50"
                 required
               />
             </div>
@@ -140,7 +140,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center rounded-2xl bg-[#472825] px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="flex w-full items-center justify-center rounded-2xl bg-[#472825]/80 px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#472825]/65 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {loading ? 'Ingresando...' : 'Iniciar sesión'}
             </button>
