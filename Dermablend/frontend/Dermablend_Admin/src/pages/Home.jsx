@@ -17,6 +17,23 @@ const Home = () => {
     }
   }, [navigate, token])
 
+  const Orders = () => {
+    const apiURL = "mongodb+srv://Devteam:Devteam@cluster0.ccct41l.mongodb.net/PenjaminCluster/Dermablend";
+    const [orders, setOrders] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch({apiURL});
+        const data = await response.json();
+        setOrders(Array.isArray(data.items) ? data : []) // Asegura que orders siempre sea un array.
+    }catch (error) {
+      console.error('Error fetching orders:', error)
+    }finally{
+      setLoading(false)
+    }
+  }
+
   const handleLogout = () => {
     // Borra todos los datos de sesión del almacenamiento local y de sesión.
     localStorage.removeItem('fakestore_token')
@@ -36,7 +53,6 @@ const Home = () => {
           <h1 className="text-4xl font-bold text-blue-600">
             Bienvenido {user ? `, ${user}` : ''}
           </h1>
-          <p className="mt-4 text-gray-700">Explora las funcionalidades y disfruta de la experiencia.</p>
         </header>
         <main className="mt-8">
           <button onClick={handleLogout} className="px-6 py-3 text-white bg-blue-500 rounded-lg hover:bg-blue-600">

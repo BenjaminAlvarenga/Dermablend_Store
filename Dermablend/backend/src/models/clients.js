@@ -26,7 +26,7 @@ public_id
 
 import {Schema, model} from "mongoose"
 
-const customerSchema = new Schema({
+const clientSchema = new Schema({
     name:{
         type: String
     },
@@ -73,6 +73,9 @@ const customerSchema = new Schema({
     loginAttempts:{
         type: Number
     },
+    image: {
+        type: String
+    },
     public_id: {
         type: String
     }
@@ -82,4 +85,4 @@ const customerSchema = new Schema({
 
 })
 
-export default model ("customer", customerSchema)
+export default model ("Clients", clientSchema)
