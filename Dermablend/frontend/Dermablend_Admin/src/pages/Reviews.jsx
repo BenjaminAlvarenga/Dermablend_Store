@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
 import DataTestForm2A from "../components/forms/DataTestForm";
-import DataTestList2A from "../components/lists/DataTestListProducts";
+import DataTestList2A from "../components/lists/DataTestListReviews";
 import useDataTest2A from "../hooks/useDataTest";
 
 const Contact2A = () => {

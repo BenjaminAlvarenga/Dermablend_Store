@@ -1,7 +1,8 @@
 // Login.jsx contiene la pantalla de inicio de sesión.
 // Para este ejemplo se usa un usuario fijo en memoria y se crea un token falso.
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
+import logo from '../../img/Dermablend.png'
 
 // Lista de usuarios válidos usados solo para la demo del login.
 // Esta lista no viene de ninguna API; es solo un conjunto de credenciales locales.
@@ -88,7 +89,7 @@ const Login = () => {
       <div className="flex w-full lg:max-w-xl sm:max-w-lg flex-col gap-8 rounded-4xl bg-white p-6 shadow-xl shadow-slate-200/50 sm:items-center">
         <div className="w-full">
           <div className="max-w-xl">
-            <img src=".././img/Dermablend.png" alt="" />
+            <img src={logo} alt="" />
           </div>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
