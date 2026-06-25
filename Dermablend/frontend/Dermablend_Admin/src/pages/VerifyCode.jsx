@@ -27,10 +27,10 @@ const users = [
   },
 ];
 
-const Login = () => {
+const VerifyCode = () => {
   // Estados para controlar los campos del formulario y su comportamiento.
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,42 +52,12 @@ const Login = () => {
     setError("");
 
     // Validación simple de los campos antes de continuar.
-    if (!email.trim() || !password) {
-      setError("Por favor completa email y contraseña.");
+    if (!code.trim()) {
+      setError("Código incorrecto");
       return;
     }
 
     setLoading(true);
-
-    try {
-      // Busca en la lista local de usuarios el email y contraseña ingresados.
-      const user = users.find(
-        (item) =>
-          item.email.toLowerCase() === email.trim().toLowerCase() &&
-          item.password === password,
-      );
-
-      if (!user) {
-        // Si no existe, se lanza un error y se muestra al usuario.
-        throw new Error("Email o contraseña incorrectos.");
-      }
-
-      // Se genera un token falso para simular autenticación.
-      const token = `token-${user.id}-${Date.now()}`;
-      const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("fakestore_token", token);
-      storage.setItem("fakestore_user", user.username);
-      storage.setItem("fakestore_email", user.email);
-
-      // Redirige a la página de inicio luego de iniciar sesión.
-      navigate("/home");
-    } catch (error_) {
-      setError(
-        error_.message || "Error al iniciar sesión. Intenta nuevamente.",
-      );
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -98,52 +68,23 @@ const Login = () => {
             <img src={logo} alt="" />
           </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 flex align-center justify-center">
+              Introduce el código que te hemos enviado hacia tu correo electrónico
+            </label>
+          </div>
+
+          <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <label className="block text-sm font-medium text-slate-700">
-                Correo electrónico
+                Código de verificación
               </label>
               <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="usuario@dominio.com"
+                type="text"
+                placeholder="XXXXXX"
                 className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80]/70 px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-[#D3AB80]/50"
                 required
               />
-            </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-slate-700">
-                Contraseña
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="********"
-                className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80]/70 px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-[#D3AB80]/50"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => setRememberMe(event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                Guardar sesión
-              </label>
-              <button
-                type="button"
-                onClick={() => navigate("/recovery-password")}
-                className="text-sm font-semibold text-indigo-600 hover:text-gray-500"
-              >
-                ¿Olvidaste tu contraseña?
-              </button>
             </div>
 
             {error && (
@@ -161,7 +102,7 @@ const Login = () => {
               disabled={loading}
               className="flex w-full items-center justify-center rounded-2xl bg-[#472825]/80 px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#472825]/65 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              {loading ? "Ingresando..." : "Iniciar sesión"}
+              <p>Confirmar código</p>
             </button>
           </form>
         </div>
@@ -170,4 +111,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default VerifyCode;

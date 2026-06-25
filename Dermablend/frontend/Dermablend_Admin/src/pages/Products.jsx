@@ -1,12 +1,12 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Nav from "../components/Nav";
-import DataTestForm2A from "../components/forms/DataTestForm";
+import Nav from "../components/UI/Nav.jsx";
+import DataTestForm2A from "../components/forms/DataTestProducts";
 import DataTestList2A from "../components/lists/DataTestListProducts";
-import useDataTest2A from "../hooks/useDataTest";
+import useDataProducts from "../hooks/products/useDataProducts";
 
-const Contact2A = () => {
+const Products = () => {
   const navigate = useNavigate();
   const token =
     localStorage.getItem("fakestore_token") ||
@@ -39,21 +39,24 @@ const Contact2A = () => {
     error,
     message,
     id,
-    cancion,
-    setCancion,
-    cantante,
-    setCantante,
-    nacionalidad,
-    setNacionalidad,
+    name,
+    setName,
+    price,
+    setPrice,
+    category,
+    setCategory,
+    stock,
+    setStock,
+    image,
+    setImage,
     openCreateForm,
     handleEdit,
     handleSubmit,
     handleDelete,
-  } = useDataTest2A();
+  } = useDataProducts();
 
   return (
     <div>
-      {token && <Nav />} {/* Muestra la navegación solo si hay token. */}
       <div className="flex min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50 px-4 py-10">
         <div className="mx-auto w-full max-w-6xl space-y-6">
           <header className="rounded-3xl px-6 py-8 text-white shadow-xl shadow-slate-200">
@@ -88,12 +91,16 @@ const Contact2A = () => {
           {activeTab === "form" ? (
             <DataTestForm2A
               id={id}
-              cancion={cancion}
-              setCancion={setCancion}
-              cantante={cantante}
-              setCantante={setCantante}
-              nacionalidad={nacionalidad}
-              setNacionalidad={setNacionalidad}
+              name={name}
+              setName={setName}
+              price={price}
+              setPrice={setPrice}
+              category={category}
+              setCategory={setCategory}
+              stock={stock}
+              setStock={setStock}
+              image={image}
+              setImage={setImage}
               onSubmit={handleSubmit}
               onCancel={() => setActiveTab("list")}
               submitting={submitting}
@@ -116,4 +123,4 @@ const Contact2A = () => {
   );
 };
 
-export default Contact2A;
+export default Products;

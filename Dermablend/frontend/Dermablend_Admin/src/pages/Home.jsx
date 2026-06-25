@@ -2,7 +2,7 @@
 // También se asegura de que la página no esté disponible si no existe token.
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Nav from "../components/Nav"; // Componente de navegación que se muestra cuando el usuario está logueado.
+import Nav from "../components/UI/Nav.jsx"; // Componente de navegación que se muestra cuando el usuario está logueado.
 
 const Home = () => {
   const navigate = useNavigate();
@@ -30,7 +30,6 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {token && <Nav />}
       <div className="flex flex-col items-center justify-center flex-grow">
         <header className="text-center">
           <h1 className="text-4xl font-bold text-blue-600">

@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Nav from "../components/Nav";
+import Nav from "../components/UI/Nav.jsx";
 import DataTestForm2A from "../components/forms/DataTestForm";
 import DataTestList2A from "../components/lists/DataTestListReviews";
 import useDataTest2A from "../hooks/useDataTest";
@@ -53,7 +53,6 @@ const Contact2A = () => {
 
   return (
     <div>
-      {token && <Nav />} {/* Muestra la navegación solo si hay token. */}
       <div className="flex min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50 px-4 py-10">
         <div className="mx-auto w-full max-w-6xl space-y-6">
           <header className="rounded-3xl px-6 py-8 text-white shadow-xl shadow-slate-200">

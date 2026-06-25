@@ -58,12 +58,11 @@ const DataTestList2A = ({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {dataTest.map((item) => (
-                <tr key={item.id} className="text-sm text-gray-700">
-                  <td className="px-4 py-3">{item.id}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{item.cancion}</td>
-                  <td className="px-4 py-3">{item.cantante}</td>
-                  <td className="px-4 py-3">{item.nacionalidad}</td>
-                  <td className="px-4 py-3">{item.nacionalidad}</td>
+                <tr key={item.id ?? item.name ?? item.image} className="text-sm text-gray-700">
+                  <td className="px-4 py-3 font-medium text-gray-900">{item.image}</td>
+                  <td className="px-4 py-3">{item.category}</td>
+                  <td className="px-4 py-3">{item.stock}</td>
+                  <td className="px-4 py-3">{item.price}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
                       <button
