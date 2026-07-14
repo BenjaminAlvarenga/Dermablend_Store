@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
-import useFetchEmployees from "./useFetchEmployees";
 
 const useDataEmployee = (methods) => {
   const [dataEmployee, setDataEmployee] = useState([]);
-  const { getEmployeeById, getEmployees } = useFetchEmployees();
   const { id } = useParams();
 
   const {
@@ -16,6 +14,36 @@ const useDataEmployee = (methods) => {
   } = methods;
 
   const navigate = useNavigate();
+
+  const getEmployees = async () => {
+    try {
+      const response = await fetch("apiurl");
+      if (!response.ok) {
+        toast.error("Error al obtener los empleados");
+        throw new Error("Error al obtener los empleados");
+      }
+      const data = await response.json();
+      setDataEmployee(data);
+    } catch (error) {
+      console.log("Error al obtener los empleados:", error);
+      toast.error("Error al obtener los empleados");
+    }
+  };
+
+  const getEmployeeById = async (id) => {
+    try {
+      const response = await fetch(`apiurl/${id}`);
+      if (!response.ok) {
+        toast.error("Error al obtener el empleado");
+        throw new Error("Error al obtener el empleado");
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("Error al obtener el empleado:", error);
+      toast.error("Error al obtener el empleado");
+    }
+  };
 
   const saveEmployeeForm = async (dataForm) => {
     try {
@@ -60,6 +88,22 @@ const useDataEmployee = (methods) => {
     }
   };
 
+  const deleteEmployee = async (id) => {
+    try {
+      const response = await fetch(`${url}/${id}`, {
+        method: "DELETE",
+      });
+      toast.success("Empleado eliminado correctamente");
+      console.log("Empleado eliminado:", response);
+      getEmployees();
+    } catch (error) {
+      console.error("Error eliminando al empleado:", error);
+      toast.error("Error al eliminar al empleado");
+    } finally {
+      getEmployees();
+    }
+  };
+
   const handleEmployeeAction = (dataForm) => {
     if(id) {
         editEmployee(dataForm);
@@ -89,6 +133,10 @@ const useDataEmployee = (methods) => {
   }
 
   useEffect(() => {
+    getEmployees();
+  }, []);
+
+  useEffect(() => {
     loadEmployee();
   }, [id]);
 
@@ -98,7 +146,9 @@ const useDataEmployee = (methods) => {
     register,
     handleSubmit: handleSubmit(handleEmployeeAction),
     errors,
+    getEmployees,
     getEmployeeById,
+    deleteEmployee,
     handleUpdateEmployee,
     loadEmployee
   }

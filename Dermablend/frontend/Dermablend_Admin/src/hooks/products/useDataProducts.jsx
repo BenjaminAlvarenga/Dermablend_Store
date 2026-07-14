@@ -41,6 +41,19 @@ const useDataProducts = () => {
     fetchDataTest();
   }, []);
 
+  // Fetches a single record by id.
+  const getProductById = async (productId) => {
+    try {
+      const response = await fetch(`${API_URL}/${productId}`);
+      if (!response.ok) {
+        throw new Error("No se pudo obtener el producto");
+      }
+      return await response.json();
+    } catch (fetchError) {
+      setError(fetchError.message || "Error al obtener el producto");
+    }
+  };
+
   // Clears the form fields and removes the current record id.
   const resetForm = () => {
     setId("");
@@ -199,6 +212,7 @@ const useDataProducts = () => {
     image,
     setImage,
     fetchDataTest,
+    getProductById,
     openCreateForm,
     handleEdit,
     handleSubmit,
