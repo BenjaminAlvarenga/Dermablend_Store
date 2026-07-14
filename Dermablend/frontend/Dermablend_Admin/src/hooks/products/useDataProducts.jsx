@@ -1,223 +1,131 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import { useNavigate, useParams } from "react-router-dom";
+import ProductsService from "../../services/Products";
 
-const API_URL = "https://retoolapi.dev/IBPkdR/products";
+const useDataProducts = (methods) => {
+  const [dataProducts, setDataProducts] = useState([]);
+  const { id } = useParams();
 
-const useDataProducts = () => {
-  const [activeTab, setActiveTab] = useState("list");
-  const [dataTest, setDataTest] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [id, setId] = useState("");
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
-  const [stock, setStock] = useState("");
-  const [image, setImage] = useState("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = methods;
 
-  // Loads the records from the API and updates the list in state.
-  const fetchDataTest = async () => {
+  const navigate = useNavigate();
+
+  const getProducts = async () => {
     try {
-      setLoading(true);
-      setError("");
-
-      const response = await fetch(API_URL);
-      if (!response.ok) {
-        throw new Error("No se pudo obtener la información");
-      }
-
-      const data = await response.json();
-      setDataTest(data);
-    } catch (fetchError) {
-      setError(fetchError.message || "Error al cargar los datos");
-    } finally {
-      setLoading(false);
+      const data = await ProductsService.get();
+      setDataProducts(data);
+    } catch (error) {
+      console.log("Error al obtener los productos:", error);
+      toast.error("Error al obtener los productos");
     }
   };
 
-  // Fetch the data once when the hook is mounted.
+  const getProductById = async (id) => {
+    try {
+      return await ProductsService.getById(id);
+    } catch (error) {
+      console.log("Error al obtener el producto:", error);
+      toast.error("Error al obtener el producto");
+    }
+  };
+
+  const saveProductForm = async (dataForm) => {
+    try {
+      await ProductsService.post(dataForm);
+      toast.success("Producto guardado correctamente");
+      navigate("/products");
+    } catch (error) {
+      console.log("Error al enviar el producto:", error);
+      toast.error("Error al guardar el producto");
+    } finally {
+      reset();
+      getProducts();
+    }
+  };
+
+  const editProduct = async (dataForm) => {
+    try {
+      await ProductsService.put(id, dataForm);
+      toast.success("Producto actualizado correctamente");
+      navigate("/products");
+    } catch (error) {
+      console.log("Error al actualizar el producto:", error);
+      toast.error("Error al actualizar el producto");
+    } finally {
+      reset();
+      getProducts();
+    }
+  };
+
+  const deleteProduct = async (id) => {
+    try {
+      await ProductsService.delete(id);
+      toast.success("Producto eliminado correctamente");
+    } catch (error) {
+      console.error("Error eliminando el producto:", error);
+      toast.error("Error al eliminar el producto");
+    } finally {
+      getProducts();
+    }
+  };
+
+  const handleProductAction = (dataForm) => {
+    if(id) {
+        editProduct(dataForm);
+    }else{
+        saveProductForm(dataForm);
+    }
+  }
+
+  const handleUpdateProduct = async (id) => {
+    navigate(`/products/${id}`);
+  };
+
+  const loadProduct = async () => {
+    if(id) {
+        const product = await getProductById(id);
+        if(product) {
+            reset({
+                name: product?.name,
+                category: product?.category,
+                price: product?.price,
+                stock: product?.stock,
+                shade: product?.shade,
+                coverage_level: product?.coverage_level,
+                description: product?.description,
+                is_customizable: product?.is_customizable,
+                image: product?.image,
+            })
+        }
+    }
+  }
+
   useEffect(() => {
-    fetchDataTest();
+    getProducts();
   }, []);
 
-  // Fetches a single record by id.
-  const getProductById = async (productId) => {
-    try {
-      const response = await fetch(`${API_URL}/${productId}`);
-      if (!response.ok) {
-        throw new Error("No se pudo obtener el producto");
-      }
-      return await response.json();
-    } catch (fetchError) {
-      setError(fetchError.message || "Error al obtener el producto");
-    }
-  };
-
-  // Clears the form fields and removes the current record id.
-  const resetForm = () => {
-    setId("");
-    setName("");
-    setPrice("");
-    setCategory("");
-    setStock("");
-    setImage("");
-  };
-
-  // Opens the form in create mode with empty values.
-  const openCreateForm = () => {
-    resetForm();
-    setMessage("");
-    setActiveTab("form");
-  };
-
-  // Loads the selected record into the form so it can be edited.
-  const handleEdit = (item) => {
-    setId(item.id);
-    setName(item.name ?? "");
-    setPrice(item.price ?? "");
-    setCategory(item.category ?? "");
-    setStock(item.stock ?? "");
-    setImage(item.image ?? "");
-    setMessage("");
-    setActiveTab("form");
-  };
-
-  // Submits the form to create a new record or update an existing one.
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const trimmedName = name.trim();
-    const trimmedPrice = price.trim();
-    const trimmedCategory = category.trim();
-    const trimmedStock = stock.trim();
-    const trimmedImage = image.trim();
-
-    if (!trimmedName) {
-      setError("El nombre es obligatorio");
-      return;
-    }
-
-    if (!trimmedPrice) {
-      setError("El precio es obligatorio");
-      return;
-    }
-
-    if (!trimmedCategory) {
-      setError("La categoría es obligatoria");
-      return;
-    }
-
-    if (!trimmedStock) {
-      setError("El stock es obligatorio");
-      return;
-    }
-
-    if (!trimmedImage) {
-      setError("La imagen es obligatoria");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setError("");
-      setMessage("");
-
-      const payload = {
-        name: trimmedName,
-        price: trimmedPrice,
-        category: trimmedCategory,
-        stock: trimmedStock,
-        image: trimmedImage,
-      };
-
-      const response = await fetch(id ? `${API_URL}/${id}` : API_URL, {
-        method: id ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error(id ? "No se pudo actualizar" : "No se pudo crear");
-      }
-
-      setMessage(
-        id
-          ? "Registro actualizado correctamente"
-          : "Registro creado correctamente",
-      );
-      resetForm();
-      setActiveTab("list");
-      fetchDataTest();
-    } catch (submitError) {
-      setError(submitError.message || "Error al guardar el registro");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Deletes a record after confirmation and refreshes the list.
-  const handleDelete = async (itemId) => {
-    const shouldDelete =
-      typeof window === "undefined"
-        ? true
-        : window.confirm("¿Deseas eliminar este registro?");
-
-    if (!shouldDelete) {
-      return;
-    }
-
-    try {
-      setError("");
-      setMessage("");
-
-      const response = await fetch(`${API_URL}/${itemId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("No se pudo eliminar el registro");
-      }
-
-      setMessage("Registro eliminado correctamente");
-      await fetchDataTest();
-
-      if (String(id) === String(itemId)) {
-        resetForm();
-        setActiveTab("list");
-      }
-    } catch (deleteError) {
-      setError(deleteError.message || "Error al eliminar el registro");
-    }
-  };
+  useEffect(() => {
+    loadProduct();
+  }, [id]);
 
   return {
-    activeTab,
-    setActiveTab,
-    dataTest,
-    loading,
-    submitting,
-    error,
-    message,
-    id,
-    name,
-    setName,
-    price,
-    setPrice,
-    category,
-    setCategory,
-    stock,
-    setStock,
-    image,
-    setImage,
-    fetchDataTest,
+    dataProducts,
+    setDataProducts,
+    register,
+    handleSubmit: handleSubmit(handleProductAction),
+    errors,
+    getProducts,
     getProductById,
-    openCreateForm,
-    handleEdit,
-    handleSubmit,
-    handleDelete,
-  };
+    deleteProduct,
+    handleUpdateProduct,
+    loadProduct
+  }
 };
 
 export default useDataProducts;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
+import EmployeesService from "../../services/Employees";
 
 const useDataEmployee = (methods) => {
   const [dataEmployee, setDataEmployee] = useState([]);
@@ -17,12 +18,7 @@ const useDataEmployee = (methods) => {
 
   const getEmployees = async () => {
     try {
-      const response = await fetch("apiurl");
-      if (!response.ok) {
-        toast.error("Error al obtener los empleados");
-        throw new Error("Error al obtener los empleados");
-      }
-      const data = await response.json();
+      const data = await EmployeesService.get();
       setDataEmployee(data);
     } catch (error) {
       console.log("Error al obtener los empleados:", error);
@@ -32,13 +28,7 @@ const useDataEmployee = (methods) => {
 
   const getEmployeeById = async (id) => {
     try {
-      const response = await fetch(`apiurl/${id}`);
-      if (!response.ok) {
-        toast.error("Error al obtener el empleado");
-        throw new Error("Error al obtener el empleado");
-      }
-      const data = await response.json();
-      return data;
+      return await EmployeesService.getById(id);
     } catch (error) {
       console.log("Error al obtener el empleado:", error);
       toast.error("Error al obtener el empleado");
@@ -47,19 +37,12 @@ const useDataEmployee = (methods) => {
 
   const saveEmployeeForm = async (dataForm) => {
     try {
-      const response = await fetch("apiurl", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataForm),
-      });
-      if (!response.ok) {
-        toast.error("Error al guardar el empleado");
-        throw new Error("Error al guardar el empleado");
-      }
+      await EmployeesService.post(dataForm);
       toast.success("Empleado guardado correctamente");
       navigate("/employees");
     } catch (error) {
       console.log("Error al enviar el empleado:", error);
+      toast.error("Error al guardar el empleado");
     } finally {
       reset();
       getEmployees();
@@ -68,15 +51,7 @@ const useDataEmployee = (methods) => {
 
   const editEmployee = async (dataForm) => {
     try {
-      const response = await fetch(`${url}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataForm),
-      });
-      if (!response.ok) {
-        toast.error("Error al actualizar al empleado");
-        throw new Error("Error al actualizar al empleado");
-      }
+      await EmployeesService.put(id, dataForm);
       toast.success("Empleado actualizado correctamente");
       navigate("/employees");
     } catch (error) {
@@ -90,12 +65,8 @@ const useDataEmployee = (methods) => {
 
   const deleteEmployee = async (id) => {
     try {
-      const response = await fetch(`${url}/${id}`, {
-        method: "DELETE",
-      });
+      await EmployeesService.delete(id);
       toast.success("Empleado eliminado correctamente");
-      console.log("Empleado eliminado:", response);
-      getEmployees();
     } catch (error) {
       console.error("Error eliminando al empleado:", error);
       toast.error("Error al eliminar al empleado");

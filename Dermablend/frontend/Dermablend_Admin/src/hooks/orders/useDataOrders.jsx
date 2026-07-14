@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
+import OrdersService from "../../services/Orders";
 
 const useDataOrders = (methods) => {
   const [dataOrders, setDataOrders] = useState([]);
@@ -17,12 +18,7 @@ const useDataOrders = (methods) => {
 
   const getOrders = async () => {
     try {
-      const response = await fetch("apiurl");
-      if (!response.ok) {
-        toast.error("Error al obtener las ordenes");
-        throw new Error("Error al obtener las ordenes");
-      }
-      const data = await response.json();
+      const data = await OrdersService.get();
       setDataOrders(data);
     } catch (error) {
       console.log("Error al obtener las ordenes:", error);
@@ -32,13 +28,7 @@ const useDataOrders = (methods) => {
 
   const getOrderById = async (id) => {
     try {
-      const response = await fetch(`apiurl/${id}`);
-      if (!response.ok) {
-        toast.error("Error al obtener la orden");
-        throw new Error("Error al obtener la orden");
-      }
-      const data = await response.json();
-      return data;
+      return await OrdersService.getById(id);
     } catch (error) {
       console.log("Error al obtener la orden:", error);
       toast.error("Error al obtener la orden");
@@ -47,19 +37,12 @@ const useDataOrders = (methods) => {
 
   const saveOrderForm = async (dataForm) => {
     try {
-      const response = await fetch("apiurl", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataForm),
-      });
-      if (!response.ok) {
-        toast.error("Error al guardar la orden");
-        throw new Error("Error al guardar la orden");
-      }
+      await OrdersService.post(dataForm);
       toast.success("Orden guardada correctamente");
       navigate("/orders");
     } catch (error) {
       console.log("Error al enviar la orden:", error);
+      toast.error("Error al guardar la orden");
     } finally {
       reset();
       getOrders();
@@ -68,15 +51,7 @@ const useDataOrders = (methods) => {
 
   const editOrder = async (dataForm) => {
     try {
-      const response = await fetch(`${url}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataForm),
-      });
-      if (!response.ok) {
-        toast.error("Error al actualizar la orden");
-        throw new Error("Error al actualizar la orden");
-      }
+      await OrdersService.put(id, dataForm);
       toast.success("Orden actualizada correctamente");
       navigate("/orders");
     } catch (error) {
@@ -90,12 +65,8 @@ const useDataOrders = (methods) => {
 
   const deleteOrder = async (id) => {
     try {
-      const response = await fetch(`${url}/${id}`, {
-        method: "DELETE",
-      });
+      await OrdersService.delete(id);
       toast.success("Orden eliminada correctamente");
-      console.log("Orden eliminada:", response);
-      getOrders();
     } catch (error) {
       console.error("Error eliminando la orden:", error);
       toast.error("Error al eliminar la orden");
