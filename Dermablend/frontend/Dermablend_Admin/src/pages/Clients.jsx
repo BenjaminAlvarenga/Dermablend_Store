@@ -56,7 +56,7 @@ const Contact2A = () => {
       <div className="flex min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50 px-4 py-10">
         <div className="mx-auto w-full max-w-6xl space-y-6">
           <header className="rounded-3xl px-6 py-8 text-white shadow-xl shadow-slate-200">
-            <h1 className="text-3xl text-[#472825] font-bold sm:text-4xl">Inventario</h1>
+            <h1 className="text-3xl text-[#472825] font-bold sm:text-4xl">Clientes</h1>
           </header>
 
           <div className="mt flex flex-wrap gap-3 justify-end">
