@@ -92,12 +92,12 @@ const useDataEmployee = (methods) => {
         const employee = await getEmployeeById(id);
         if(employee) {
             reset({
-                nombre: employee?.name,
+                name: employee?.name,
                 email: employee?.email,
-                rol: employee?.role,
-                fechaContratacion: employee?.hire_date,
-                salario: employee?.salary,
-                estatus: employee?.status,
+                role: employee?.role,
+                hire_date: employee?.hire_date,
+                salary: employee?.salary,
+                status: employee?.status,
             })
         }
     }
