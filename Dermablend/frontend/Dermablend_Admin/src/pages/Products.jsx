@@ -1,72 +1,59 @@
-import React from "react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Nav from "../components/UI/Nav.jsx";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
 import DataTestForm2A from "../components/forms/DataTestProducts";
 import DataTestList2A from "../components/lists/DataTestListProducts";
 import useDataProducts from "../hooks/products/useDataProducts";
 
 const Products = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const token =
     localStorage.getItem("fakestore_token") ||
     sessionStorage.getItem("fakestore_token");
-  const user =
-    localStorage.getItem("fakestore_user") ||
-    sessionStorage.getItem("fakestore_user") ||
-    "";
+
+  const methods = useForm();
+  const {
+    dataProducts,
+    register,
+    handleSubmit,
+    errors,
+    deleteProduct,
+    handleUpdateProduct,
+  } = useDataProducts(methods);
+
+  const [activeTab, setActiveTab] = useState(id ? "form" : "list");
 
   useEffect(() => {
     if (!token) navigate("/");
   }, [navigate, token]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("fakestore_token");
-    localStorage.removeItem("fakestore_user");
-    localStorage.removeItem("fakestore_email");
-    sessionStorage.removeItem("fakestore_token");
-    sessionStorage.removeItem("fakestore_user");
-    sessionStorage.removeItem("fakestore_email");
-    navigate("/");
+  useEffect(() => {
+    setActiveTab(id ? "form" : "list");
+  }, [id]);
+
+  const openCreateForm = () => {
+    methods.reset({});
+    setActiveTab("form");
   };
 
-  const {
-    activeTab,
-    setActiveTab,
-    dataTest,
-    loading,
-    submitting,
-    error,
-    message,
-    id,
-    name,
-    setName,
-    price,
-    setPrice,
-    category,
-    setCategory,
-    stock,
-    setStock,
-    image,
-    setImage,
-    openCreateForm,
-    handleEdit,
-    handleSubmit,
-    handleDelete,
-  } = useDataProducts();
+  const cancelForm = () => {
+    setActiveTab("list");
+    navigate("/products");
+  };
 
   return (
     <div>
       <div className="flex min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50 px-4 py-10">
         <div className="mx-auto w-full max-w-6xl space-y-6">
           <header className="rounded-3xl px-6 py-8 text-white shadow-xl shadow-slate-200">
-            <h1 className="text-3xl text-[#472825] font-bold sm:text-4xl">Inventario</h1>
+            <h1 className="text-3xl text-[#472825] font-bold sm:text-4xl">Productos</h1>
           </header>
 
           <div className="mt flex flex-wrap gap-3 justify-end">
             <button
               type="button"
-              onClick={() => setActiveTab("list")}
+              onClick={() => (id ? cancelForm() : setActiveTab("list"))}
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                 activeTab === "list"
                   ? "bg-[#D3AB80] text-slate-900"
@@ -91,30 +78,16 @@ const Products = () => {
           {activeTab === "form" ? (
             <DataTestForm2A
               id={id}
-              name={name}
-              setName={setName}
-              price={price}
-              setPrice={setPrice}
-              category={category}
-              setCategory={setCategory}
-              stock={stock}
-              setStock={setStock}
-              image={image}
-              setImage={setImage}
+              register={register}
+              errors={errors}
               onSubmit={handleSubmit}
-              onCancel={() => setActiveTab("list")}
-              submitting={submitting}
-              error={error}
-              message={message}
+              onCancel={cancelForm}
             />
           ) : (
             <DataTestList2A
-              dataTest={dataTest}
-              loading={loading}
-              error={error}
-              onAdd={openCreateForm}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              dataProducts={dataProducts}
+              onEdit={handleUpdateProduct}
+              onDelete={deleteProduct}
             />
           )}
         </div>

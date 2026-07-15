@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
-import useFetchEmployees from "./useFetchEmployees";
+import EmployeesService from "../../services/Employees";
 
 const useDataEmployee = (methods) => {
   const [dataEmployee, setDataEmployee] = useState([]);
-  const { getEmployeeById, getEmployees } = useFetchEmployees();
   const { id } = useParams();
 
   const {
@@ -17,21 +16,33 @@ const useDataEmployee = (methods) => {
 
   const navigate = useNavigate();
 
+  const getEmployees = async () => {
+    try {
+      const data = await EmployeesService.get();
+      setDataEmployee(data);
+    } catch (error) {
+      console.log("Error al obtener los empleados:", error);
+      toast.error("Error al obtener los empleados");
+    }
+  };
+
+  const getEmployeeById = async (id) => {
+    try {
+      return await EmployeesService.getById(id);
+    } catch (error) {
+      console.log("Error al obtener el empleado:", error);
+      toast.error("Error al obtener el empleado");
+    }
+  };
+
   const saveEmployeeForm = async (dataForm) => {
     try {
-      const response = await fetch("apiurl", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataForm),
-      });
-      if (!response.ok) {
-        toast.error("Error al guardar el empleado");
-        throw new Error("Error al guardar el empleado");
-      }
+      await EmployeesService.post(dataForm);
       toast.success("Empleado guardado correctamente");
       navigate("/employees");
     } catch (error) {
       console.log("Error al enviar el empleado:", error);
+      toast.error("Error al guardar el empleado");
     } finally {
       reset();
       getEmployees();
@@ -40,15 +51,7 @@ const useDataEmployee = (methods) => {
 
   const editEmployee = async (dataForm) => {
     try {
-      const response = await fetch(`${url}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataForm),
-      });
-      if (!response.ok) {
-        toast.error("Error al actualizar al empleado");
-        throw new Error("Error al actualizar al empleado");
-      }
+      await EmployeesService.put(id, dataForm);
       toast.success("Empleado actualizado correctamente");
       navigate("/employees");
     } catch (error) {
@@ -56,6 +59,18 @@ const useDataEmployee = (methods) => {
       toast.error("Error al actualizar el empleado");
     } finally {
       reset();
+      getEmployees();
+    }
+  };
+
+  const deleteEmployee = async (id) => {
+    try {
+      await EmployeesService.delete(id);
+      toast.success("Empleado eliminado correctamente");
+    } catch (error) {
+      console.error("Error eliminando al empleado:", error);
+      toast.error("Error al eliminar al empleado");
+    } finally {
       getEmployees();
     }
   };
@@ -77,16 +92,20 @@ const useDataEmployee = (methods) => {
         const employee = await getEmployeeById(id);
         if(employee) {
             reset({
-                nombre: employee?.name,
+                name: employee?.name,
                 email: employee?.email,
-                rol: employee?.role,
-                fechaContratacion: employee?.hire_date,
-                salario: employee?.salary,
-                estatus: employee?.status,
+                role: employee?.role,
+                hire_date: employee?.hire_date,
+                salary: employee?.salary,
+                status: employee?.status,
             })
         }
     }
   }
+
+  useEffect(() => {
+    getEmployees();
+  }, []);
 
   useEffect(() => {
     loadEmployee();
@@ -98,7 +117,9 @@ const useDataEmployee = (methods) => {
     register,
     handleSubmit: handleSubmit(handleEmployeeAction),
     errors,
+    getEmployees,
     getEmployeeById,
+    deleteEmployee,
     handleUpdateEmployee,
     loadEmployee
   }

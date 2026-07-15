@@ -1,50 +1,11 @@
-import React from "react";
- 
-const DataTestList2A = ({
-  dataTest,
-  loading,
-  error,
-  onAdd,
-  onEdit,
-  onDelete,
-}) => {
+const DataTestListProducts = ({ dataProducts, onEdit, onDelete }) => {
   return (
     <section className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Productos
-          </h2>
-        </div>
- 
-        <button
-          type="button"
-          onClick={onAdd}
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
-        >
-          Nuevo registro
-        </button>
-      </div>
- 
-      {loading ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-center text-gray-600">
-          Cargando datos...
-        </div>
-      ) : null}
- 
-      {error ? (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
- 
-      {!loading && !dataTest.length ? (
+      {!dataProducts?.length ? (
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-gray-600">
           No hay registros disponibles.
         </div>
-      ) : null}
- 
-      {!loading && dataTest.length > 0 ? (
+      ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
@@ -57,9 +18,9 @@ const DataTestList2A = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {dataTest.map((item) => (
-                <tr key={item.id ?? item.name ?? item.image} className="text-sm text-gray-700">
-                  <td className="px-4 py-3 font-medium text-gray-900">{item.image}</td>
+              {dataProducts.map((item) => (
+                <tr key={item._id} className="text-sm text-gray-700">
+                  <td className="px-4 py-3 font-medium text-gray-900">{item.name}</td>
                   <td className="px-4 py-3">{item.category}</td>
                   <td className="px-4 py-3">{item.stock}</td>
                   <td className="px-4 py-3">{item.price}</td>
@@ -67,14 +28,14 @@ const DataTestList2A = ({
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => onEdit(item)}
+                        onClick={() => onEdit(item._id)}
                         className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
                       >
                         Editar
                       </button>
                       <button
                         type="button"
-                        onClick={() => onDelete(item.id)}
+                        onClick={() => onDelete(item._id)}
                         className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                       >
                         Eliminar
@@ -86,11 +47,9 @@ const DataTestList2A = ({
             </tbody>
           </table>
         </div>
-      ) : null}
+      )}
     </section>
   );
 };
- 
-export default DataTestList2A;
- 
- 
+
+export default DataTestListProducts;
