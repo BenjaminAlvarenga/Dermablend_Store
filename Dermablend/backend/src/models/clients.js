@@ -1,88 +1,77 @@
-/*
-name,
-email, 
-password,
-birthdate,
-phone,
-favorites: {
-labial,
-polvo,
-base
-}
-skin_type: {
-grasa, 
-seca, 
-mixta,
-}
-skin_tone{
-morena,
-blanca,
-trigueña
-}
-isVerified,
-loginAttempts
-public_id
-*/ 
+import { Schema, model } from "mongoose";
+import bcrypt from "bcryptjs";
 
-import {Schema, model} from "mongoose"
-
-const clientSchema = new Schema({
-    name:{
-        type: String
-    },
-    email:{
-        type: String
-    },
-    password: {
-        type: String 
-    },
-    birthdate: {
-        type: Date
-    },
-    phone: {
-
-    },
-    favorites: [
-        {
-            labial:{type: String},
-            polvo: {type: String},
-            base: {type: String}
+const clientSchema = new Schema(
+    {
+        name: {
+            type: String,
+            required: [true, "Name is required"],
+            trim: true
+        },
+        email: {
+            type: String,
+            required: [true, "Email is required"],
+            unique: true,
+            trim: true,
+            lowercase: true,
+            match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Please fill a valid email address"]
+        },
+        password: {
+            type: String,
+            required: [true, "Password is required"]
+        },
+        birthdate: {
+            type: Date,
+            required: [true, "Birthdate is required"]
+        },
+        phone: {
+            type: String,
+            required: [true, "Phone is required"],
+            trim: true
+        },
+        favorites: {
+            type: [String],
+            default: []
+        },
+        skin_type: {
+            type: String,
+            required: [true, "Skin type is required"],
+            trim: true
+        },
+        skin_tone: {
+            type: String,
+            required: [true, "Skin tone is required"],
+            trim: true
+        },
+        is_verified: {
+            type: Boolean,
+            default: false
+        },
+        status: {
+            type: String,
+            required: [true, "Status is required"],
+            enum: ["active", "inactive"],
+            default: "active"
         }
-    ],
-    skin_tone: [
-        {
-            morena: {type: String},
-            blanca: {type: String},
-            trigueña: {type: String}
+    },
+    {
+        timestamps: {
+            createdAt: "created_at",
+            updatedAt: "updated_at"
         }
-    ],
-    skin_type: [
-        {
-            grasa:{type: String}, 
-            seca:{type: String}, 
-            mixta: {type: String}
-        }
-    ],
-
-    isActive: {
-        type: Boolean
-    },
-    isVerified:{
-            type:Boolean
-    },
-    loginAttempts:{
-        type: Number
-    },
-    image: {
-        type: String
-    },
-    public_id: {
-        type: String
     }
-},{
-    timestamps: true,
-    strict: false 
+);
 
-})
+// Hash client password before saving
+clientSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+});
 
-export default model ("Clients", clientSchema)
+// Compare password method
+clientSchema.methods.comparePassword = async function (candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+};
+
+export default model("Clients", clientSchema);
