@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "../App.jsx";
+import OrdersService from "../services/orders.js";
+import CustomizationsService from "../services/customizations.js";
 
 function Profile({ user, token, handleLogout, navigateTo }) {
   const [orders, setOrders] = useState([]);
@@ -14,30 +15,24 @@ function Profile({ user, token, handleLogout, navigateTo }) {
     if (!clientId) return;
 
     // Fetch client orders
-    fetch(`${API_BASE_URL}/orders?client_id=${clientId}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-      .then((res) => res.json())
+    OrdersService.getClientOrders(clientId)
       .then((data) => {
         if (data.success && data.data) {
           // Sort by date newest first
           setOrders(data.data.sort((a, b) => new Date(b.order_date) - new Date(a.order_date)));
         }
       })
-      .catch((err) => console.log("Error loading client orders:", err))
+      .catch((err) => console.error("Error loading client orders:", err))
       .finally(() => setLoadingOrders(false));
 
     // Fetch client customizations
-    fetch(`${API_BASE_URL}/customizations?client_id=${clientId}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-      .then((res) => res.json())
+    CustomizationsService.getClientCustomizations(clientId)
       .then((data) => {
         if (data.success && data.data) {
           setCustomizations(data.data);
         }
       })
-      .catch((err) => console.log("Error loading customizations:", err))
+      .catch((err) => console.error("Error loading customizations:", err))
       .finally(() => setLoadingCustoms(false));
   }, [clientId, token]);
 
@@ -46,19 +41,7 @@ function Profile({ user, token, handleLogout, navigateTo }) {
     if (!confirmCancel) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: "Cancelado" })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Error al cancelar pedido.");
-      }
+      await OrdersService.cancelOrder(orderId);
 
       // Update state order status locally
       setOrders((prev) =>

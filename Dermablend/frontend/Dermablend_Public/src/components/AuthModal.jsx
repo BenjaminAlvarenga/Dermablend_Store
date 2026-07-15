@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { API_BASE_URL } from "../App.jsx";
+import AuthService from "../services/auth.js";
 
 function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
   const [loading, setLoading] = useState(false);
@@ -35,16 +35,7 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Email o contraseña incorrectos.");
-      }
+      const data = await AuthService.login(loginEmail.trim(), loginPassword);
 
       setSuccess("¡Bienvenido de vuelta!");
       setTimeout(() => {
@@ -70,25 +61,16 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register/client`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: regName.trim(),
-          email: regEmail.trim(),
-          password: regPassword,
-          birthdate: regBirthdate,
-          phone: regPhone.trim(),
-          skin_type: regSkinType,
-          skin_tone: regSkinTone,
-          favorites: []
-        })
+      const data = await AuthService.register({
+        name: regName.trim(),
+        email: regEmail.trim(),
+        password: regPassword,
+        birthdate: regBirthdate,
+        phone: regPhone.trim(),
+        skin_type: regSkinType,
+        skin_tone: regSkinTone,
+        favorites: []
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Error en el registro.");
-      }
 
       setSuccess("¡Registro exitoso! Iniciando sesión...");
       setTimeout(() => {

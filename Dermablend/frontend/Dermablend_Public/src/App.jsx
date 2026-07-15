@@ -7,6 +7,7 @@ import Customizer from "./pages/Customizer.jsx";
 import Cart from "./pages/Cart.jsx";
 import Profile from "./pages/Profile.jsx";
 import AuthModal from "./components/AuthModal.jsx";
+import AuthService from "./services/auth.js";
 
 // Base API URL pointing to our local backend server
 export const API_BASE_URL = "http://localhost:3000/api";
@@ -60,6 +61,23 @@ function App() {
     localStorage.removeItem("dermablend_token");
     setView("home");
   };
+
+  // Validate session on mount
+  useEffect(() => {
+    if (token) {
+      AuthService.getProfile()
+        .then((data) => {
+          if (data.success && data.user) {
+            setUser(data.user);
+            localStorage.setItem("dermablend_user", JSON.stringify(data.user));
+          }
+        })
+        .catch((err) => {
+          console.error("Session verification failed. Logging out...", err.message);
+          handleLogout();
+        });
+    }
+  }, [token]);
 
   // Cart actions
   const addToCart = (product, quantity = 1) => {

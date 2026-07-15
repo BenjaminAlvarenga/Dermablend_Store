@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "../App.jsx";
+import ProductsService from "../services/products.js";
+import CustomizationsService from "../services/customizations.js";
 
 function Customizer({ user, token, navigateTo, openAuth }) {
   const [customizableProducts, setCustomizableProducts] = useState([]);
@@ -26,9 +27,7 @@ function Customizer({ user, token, navigateTo, openAuth }) {
   ];
 
   useEffect(() => {
-    // Fetch customizable products
-    fetch(`${API_BASE_URL}/products?is_customizable=true`)
-      .then((res) => res.json())
+    ProductsService.getCustomizableProducts()
       .then((data) => {
         if (data.success && data.data) {
           setCustomizableProducts(data.data);
@@ -37,7 +36,7 @@ function Customizer({ user, token, navigateTo, openAuth }) {
           }
         }
       })
-      .catch((err) => console.log("Error fetching customizable products:", err))
+      .catch((err) => console.error("Error loading customizable products:", err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -59,25 +58,13 @@ function Customizer({ user, token, navigateTo, openAuth }) {
     setSaving(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/customizations`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          client_id: user._id || user.id,
-          product_id: selectedProductId,
-          custom_shade: customShade,
-          finish_type: finishType,
-          allergy_notes: allergyNotes.trim()
-        })
+      await CustomizationsService.createCustomization({
+        client_id: user._id || user.id,
+        product_id: selectedProductId,
+        custom_shade: customShade,
+        finish_type: finishType,
+        allergy_notes: allergyNotes.trim()
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Error al guardar la fórmula.");
-      }
 
       setSuccess("¡Fórmula guardada correctamente! La verás en tu perfil.");
       setTimeout(() => {

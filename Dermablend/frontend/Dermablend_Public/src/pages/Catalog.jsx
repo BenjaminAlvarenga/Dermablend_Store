@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "../App.jsx";
+import ProductsService from "../services/products.js";
 
 function Catalog({
   navigateTo,
@@ -24,20 +24,14 @@ function Catalog({
 
   useEffect(() => {
     setLoading(true);
-    // Build query string
-    const params = new URLSearchParams();
-    if (selectedCategory) {
-      params.append("category", selectedCategory);
-    }
 
-    fetch(`${API_BASE_URL}/products?${params.toString()}`)
-      .then((res) => res.json())
+    ProductsService.getProducts(selectedCategory)
       .then((data) => {
         if (data.success && data.data) {
           setProducts(data.data);
         }
       })
-      .catch((err) => console.log("Error loading catalog products:", err))
+      .catch((err) => console.error("Error loading catalog products:", err))
       .finally(() => setLoading(false));
   }, [selectedCategory]);
 

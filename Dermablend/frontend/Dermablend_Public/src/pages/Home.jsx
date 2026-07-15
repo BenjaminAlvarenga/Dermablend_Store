@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "../App.jsx";
+import ProductsService from "../services/products.js";
+import PromotionsService from "../services/promotions.js";
 
 function Home({ navigateTo, addToCart, toggleFavorite, favorites }) {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -8,27 +9,24 @@ function Home({ navigateTo, addToCart, toggleFavorite, favorites }) {
   const [loadingPromos, setLoadingPromos] = useState(true);
 
   useEffect(() => {
-    // Fetch products
-    fetch(`${API_BASE_URL}/products`)
-      .then((res) => res.json())
+    // Fetch featured products
+    ProductsService.getProducts()
       .then((data) => {
         if (data.success && data.data) {
-          // Take first 3-4 products as featured
           setFeaturedProducts(data.data.slice(0, 4));
         }
       })
-      .catch((err) => console.log("Error fetching featured products:", err))
+      .catch((err) => console.error("Error loading featured products:", err))
       .finally(() => setLoadingProducts(false));
 
     // Fetch promotions
-    fetch(`${API_BASE_URL}/promotions?status=active`)
-      .then((res) => res.json())
+    PromotionsService.getActivePromotions()
       .then((data) => {
         if (data.success && data.data) {
           setPromotions(data.data);
         }
       })
-      .catch((err) => console.log("Error fetching promotions:", err))
+      .catch((err) => console.error("Error loading promotions:", err))
       .finally(() => setLoadingPromos(false));
   }, []);
 
