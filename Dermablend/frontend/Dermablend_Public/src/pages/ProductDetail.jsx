@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductsService from "../services/products.js";
-import ReviewsService from "../services/reviews.js";
+import { API_BASE_URL } from "../App.jsx";
 
 function ProductDetail({
   productId,
@@ -30,23 +29,28 @@ function ProductDetail({
     setLoading(true);
     setReviewError("");
 
-    // Fetch product details & related products
-    ProductsService.getProductById(productId)
+    // Fetch product details
+    fetch(`${API_BASE_URL}/products/${productId}`)
+      .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
           setProduct(data.data);
-          return ProductsService.getProducts(data.data.category);
+          // Fetch related products of same category
+          return fetch(`${API_BASE_URL}/products?category=${data.data.category}`);
         }
       })
+      .then((res) => (res ? res.json() : null))
       .then((data) => {
         if (data && data.success && data.data) {
+          // Filter out current product and take 3
           setRelatedProducts(data.data.filter((p) => p._id !== productId).slice(0, 3));
         }
       })
       .catch((err) => console.error("Error loading product details/related:", err));
 
     // Fetch reviews
-    ReviewsService.getReviews(productId)
+    fetch(`${API_BASE_URL}/reviews?product_id=${productId}`)
+      .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
           setReviews(data.data);
@@ -73,12 +77,24 @@ function ProductDetail({
     setSubmittingReview(true);
 
     try {
-      const data = await ReviewsService.createReview({
-        client_id: user._id || user.id,
-        product_id: productId,
-        rating: Number(newRating),
-        comment: newComment.trim()
+      const response = await fetch(`${API_BASE_URL}/reviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          client_id: user._id || user.id,
+          product_id: productId,
+          rating: Number(newRating),
+          comment: newComment.trim()
+        })
       });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error al publicar la reseña.");
+      }
 
       // Prepend review and clear form
       setReviews((prev) => [

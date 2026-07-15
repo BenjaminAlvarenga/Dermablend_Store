@@ -1,5 +1,5 @@
 /**
- * Validation middleware for login inputs
+ * Validation rules for login inputs
  */
 export const validateLogin = (req, res, next) => {
     const { email, password } = req.body;
@@ -28,3 +28,4 @@ export const validateLogin = (req, res, next) => {
 
     next();
 };
+export default validateLogin;

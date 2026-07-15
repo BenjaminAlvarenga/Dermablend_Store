@@ -7,7 +7,6 @@ import Customizer from "./pages/Customizer.jsx";
 import Cart from "./pages/Cart.jsx";
 import Profile from "./pages/Profile.jsx";
 import AuthModal from "./components/AuthModal.jsx";
-import AuthService from "./services/auth.js";
 import RecoveryReset from "./pages/RecoveryReset.jsx";
 
 // Base API URL pointing to our local backend server
@@ -78,7 +77,13 @@ function App() {
   // Validate session on mount
   useEffect(() => {
     if (token) {
-      AuthService.getProfile()
+      fetch(`${API_BASE_URL}/auth/profile`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Invalid session");
+          return res.json();
+        })
         .then((data) => {
           if (data.success && data.user) {
             setUser(data.user);

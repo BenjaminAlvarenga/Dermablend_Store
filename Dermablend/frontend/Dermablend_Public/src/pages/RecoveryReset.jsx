@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AuthService from "../services/auth.js";
+import { API_BASE_URL } from "../App.jsx";
 
 function RecoveryReset({ token, navigateTo }) {
   const [newPassword, setNewPassword] = useState("");
@@ -31,7 +31,16 @@ function RecoveryReset({ token, navigateTo }) {
     setLoading(true);
 
     try {
-      const data = await AuthService.resetPassword(token, newPassword);
+      const response = await fetch(`${API_BASE_URL}/auth/recovery/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error al restablecer contraseña.");
+      }
       setSuccess(data.message || "Contraseña restablecida exitosamente. Redirigiendo...");
       setTimeout(() => {
         // Clear search query parameters in URL

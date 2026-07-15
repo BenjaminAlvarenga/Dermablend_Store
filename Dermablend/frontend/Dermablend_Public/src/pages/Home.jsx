@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductsService from "../services/products.js";
-import PromotionsService from "../services/promotions.js";
+import { API_BASE_URL } from "../App.jsx";
 
 function Home({ navigateTo, addToCart, toggleFavorite, favorites }) {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -10,7 +9,8 @@ function Home({ navigateTo, addToCart, toggleFavorite, favorites }) {
 
   useEffect(() => {
     // Fetch featured products
-    ProductsService.getProducts()
+    fetch(`${API_BASE_URL}/products`)
+      .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
           setFeaturedProducts(data.data.slice(0, 4));
@@ -20,7 +20,8 @@ function Home({ navigateTo, addToCart, toggleFavorite, favorites }) {
       .finally(() => setLoadingProducts(false));
 
     // Fetch promotions
-    PromotionsService.getActivePromotions()
+    fetch(`${API_BASE_URL}/promotions?status=active`)
+      .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
           setPromotions(data.data);

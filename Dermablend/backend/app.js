@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 
 // Import API routes
-import authRoutes from "./src/routes/auth.js";
+import authRoutes from "./src/routes/authRoutes.js";
 import clientRoutes from "./src/routes/clients.js";
 import customizationRoutes from "./src/routes/customizations.js";
 import employeeRoutes from "./src/routes/employees.js";

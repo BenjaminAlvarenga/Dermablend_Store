@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductsService from "../services/products.js";
+import { API_BASE_URL } from "../App.jsx";
 
 function Catalog({
   navigateTo,
@@ -24,8 +24,13 @@ function Catalog({
 
   useEffect(() => {
     setLoading(true);
+    const params = new URLSearchParams();
+    if (selectedCategory) {
+      params.append("category", selectedCategory);
+    }
 
-    ProductsService.getProducts(selectedCategory)
+    fetch(`${API_BASE_URL}/products?${params.toString()}`)
+      .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
           setProducts(data.data);

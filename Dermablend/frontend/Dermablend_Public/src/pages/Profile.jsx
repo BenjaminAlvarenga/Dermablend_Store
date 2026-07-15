@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import OrdersService from "../services/orders.js";
-import CustomizationsService from "../services/customizations.js";
+import { API_BASE_URL } from "../App.jsx";
 
 function Profile({ user, token, handleLogout, navigateTo }) {
   const [orders, setOrders] = useState([]);
@@ -15,7 +14,10 @@ function Profile({ user, token, handleLogout, navigateTo }) {
     if (!clientId) return;
 
     // Fetch client orders
-    OrdersService.getClientOrders(clientId)
+    fetch(`${API_BASE_URL}/orders?client_id=${clientId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+      .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
           // Sort by date newest first
@@ -26,7 +28,10 @@ function Profile({ user, token, handleLogout, navigateTo }) {
       .finally(() => setLoadingOrders(false));
 
     // Fetch client customizations
-    CustomizationsService.getClientCustomizations(clientId)
+    fetch(`${API_BASE_URL}/customizations?client_id=${clientId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+      .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
           setCustomizations(data.data);
@@ -41,7 +46,19 @@ function Profile({ user, token, handleLogout, navigateTo }) {
     if (!confirmCancel) return;
 
     try {
-      await OrdersService.cancelOrder(orderId);
+      const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: "Cancelado" })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error al cancelar el pedido.");
+      }
 
       // Update state order status locally
       setOrders((prev) =>

@@ -1,5 +1,5 @@
 /**
- * Validation middleware for password recovery request input
+ * Validation rules for password recovery request input
  */
 export const validateRecoveryRequest = (req, res, next) => {
     const { email } = req.body;
@@ -30,7 +30,7 @@ export const validateRecoveryRequest = (req, res, next) => {
 };
 
 /**
- * Validation middleware for password recovery reset input
+ * Validation rules for password recovery reset input
  */
 export const validateRecoveryReset = (req, res, next) => {
     const { token, newPassword } = req.body;

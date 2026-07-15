@@ -1,5 +1,5 @@
 /**
- * Validation middleware for client registration inputs
+ * Validation rules for client registration inputs
  */
 export const validateClientRegister = (req, res, next) => {
     const { name, email, password, birthdate, phone, skin_type, skin_tone } = req.body;
@@ -52,7 +52,7 @@ export const validateClientRegister = (req, res, next) => {
 };
 
 /**
- * Validation middleware for employee registration inputs
+ * Validation rules for employee registration inputs
  */
 export const validateEmployeeRegister = (req, res, next) => {
     const { name, email, password, role, hire_date, salary } = req.body;

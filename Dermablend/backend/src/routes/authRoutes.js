@@ -6,47 +6,50 @@ import {
     employeeLogin,
     unifiedLogin,
     getProfile
-} from "../controller/login.controller.js";
+} from "../controller/loginController.js";
 import {
     clientRegister,
     employeeRegister
-} from "../controller/register.controller.js";
+} from "../controller/registerController.js";
 import {
     clientRecoveryRequest,
     clientRecoveryReset
-} from "../controller/recoveryPassword.controller.js";
+} from "../controller/recoveryPasswordController.js";
 import {
     logout
-} from "../controller/logout.controller.js";
+} from "../controller/logoutController.js";
 
 // Validations
 import {
     validateLogin
-} from "../validations/login.validation.js";
+} from "../validations/loginValidation.js";
 import {
     validateClientRegister,
     validateEmployeeRegister
-} from "../validations/register.validation.js";
+} from "../validations/registerValidation.js";
 import {
     validateRecoveryRequest,
     validateRecoveryReset
-} from "../validations/recoveryPassword.validation.js";
+} from "../validations/recoveryPasswordValidation.js";
+import {
+    validateLogout
+} from "../validations/logoutValidation.js";
 
 // Middlewares
 import { authMiddleware, roleMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-// Public auth routes (Original mappings for client/employee and unified)
+// Public auth routes (Original client/employee and unified mappings)
 router.post("/register/client", validateClientRegister, clientRegister);
 router.post("/login/client", validateLogin, clientLogin);
 router.post("/login/employee", validateLogin, employeeLogin);
 router.post("/login", validateLogin, unifiedLogin);
-router.post("/logout", logout);
+router.post("/logout", validateLogout, logout);
 router.post("/recovery/request", validateRecoveryRequest, clientRecoveryRequest);
 router.post("/recovery/reset", validateRecoveryReset, clientRecoveryReset);
 
-// Additional routes matching prompt specifications exactly
+// Target routes requested by prompt specifications exactly
 router.post("/register", validateClientRegister, clientRegister);
 router.post("/recovery-password", validateRecoveryRequest, clientRecoveryRequest);
 router.post("/reset-password", validateRecoveryReset, clientRecoveryReset);

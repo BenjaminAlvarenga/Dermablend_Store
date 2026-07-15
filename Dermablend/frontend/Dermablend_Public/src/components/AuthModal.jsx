@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AuthService from "../services/auth.js";
+import { API_BASE_URL } from "../App.jsx";
 
 function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,16 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
     setLoading(true);
 
     try {
-      const data = await AuthService.login(loginEmail.trim(), loginPassword);
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Email o contraseña incorrectos.");
+      }
 
       setSuccess("¡Bienvenido de vuelta!");
       setTimeout(() => {
@@ -61,16 +70,25 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
     setLoading(true);
 
     try {
-      const data = await AuthService.register({
-        name: regName.trim(),
-        email: regEmail.trim(),
-        password: regPassword,
-        birthdate: regBirthdate,
-        phone: regPhone.trim(),
-        skin_type: regSkinType,
-        skin_tone: regSkinTone,
-        favorites: []
+      const response = await fetch(`${API_BASE_URL}/auth/register/client`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: regName.trim(),
+          email: regEmail.trim(),
+          password: regPassword,
+          birthdate: regBirthdate,
+          phone: regPhone.trim(),
+          skin_type: regSkinType,
+          skin_tone: regSkinTone,
+          favorites: []
+        })
       });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error en el registro.");
+      }
 
       setSuccess("¡Registro exitoso! Iniciando sesión...");
       setTimeout(() => {
@@ -96,7 +114,17 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
     setLoading(true);
 
     try {
-      const data = await AuthService.requestRecovery(recoveryEmail.trim());
+      const response = await fetch(`${API_BASE_URL}/auth/recovery/request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: recoveryEmail.trim() })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error al solicitar recuperación.");
+      }
+
       setSuccess(data.message || "Enlace de recuperación enviado. Revisa tu correo.");
       setTimeout(() => {
         setActiveTab("login");

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import OrdersService from "../services/orders.js";
+import { API_BASE_URL } from "../App.jsx";
 
 function Cart({
   cart,
@@ -56,7 +56,19 @@ function Cart({
         shipping_address: shippingAddress.trim()
       };
 
-      const data = await OrdersService.createOrder(orderPayload);
+      const response = await fetch(`${API_BASE_URL}/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(orderPayload)
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Error al completar el pedido.");
+      }
 
       setOrderCompleteData(data.data);
       clearCart();
