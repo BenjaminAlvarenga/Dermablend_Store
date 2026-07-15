@@ -27,8 +27,15 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
     setError("");
     setSuccess("");
 
-    if (!loginEmail.trim() || !loginPassword) {
-      setError("Por favor completa todos los campos.");
+    const cleanEmail = loginEmail.trim();
+    if (!cleanEmail || !loginPassword || loginPassword.trim().length === 0) {
+      setError("Por favor completa todos los campos (no se permiten espacios vacíos).");
+      return;
+    }
+
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setError("Por favor ingresa una dirección de correo electrónico válida (ej: usuario@correo.com).");
       return;
     }
 
@@ -38,7 +45,7 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword })
+        body: JSON.stringify({ email: cleanEmail, password: loginPassword })
       });
 
       const data = await response.json();
@@ -51,7 +58,11 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
         onLogin(data.user, data.token);
       }, 800);
     } catch (err) {
-      setError(err.message || "Error al iniciar sesión.");
+      if (err.name === "TypeError" && err.message.includes("fetch")) {
+        setError("Error de conexión: No se pudo establecer contacto con el servidor de Dermablend. Verifica tu conexión a internet.");
+      } else {
+        setError(err.message || "Error al iniciar sesión.");
+      }
     } finally {
       setLoading(false);
     }
