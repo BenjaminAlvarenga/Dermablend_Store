@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import Clients from "../models/clients.js";
 import Employees from "../models/employees.js";
 import { config } from "../config.js";
+import { sendRecoveryEmail } from "../services/mailService.js";
 
 // Helper to generate JWT
 const generateToken = (payload) => {
@@ -27,6 +29,28 @@ export const clientRegister = async (req, res, next) => {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required client fields"
+            });
+        }
+
+        const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+        if (!emailRegex.test(String(email).trim())) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid email address format"
+            });
+        }
+
+        if (String(password).length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters long"
+            });
+        }
+
+        if (isNaN(Date.parse(birthdate))) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid date format for birthdate"
             });
         }
 
@@ -130,6 +154,35 @@ export const employeeRegister = async (req, res, next) => {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required employee fields"
+            });
+        }
+
+        const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+        if (!emailRegex.test(String(email).trim())) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid email address format"
+            });
+        }
+
+        if (String(password).length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters long"
+            });
+        }
+
+        if (isNaN(Date.parse(hire_date))) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid date format for hire_date"
+            });
+        }
+
+        if (Number(salary) <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Salary must be a positive number greater than 0"
             });
         }
 
@@ -294,6 +347,117 @@ export const getProfile = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             user
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const clientRecoveryRequest = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required" });
+        }
+
+        const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+        if (!emailRegex.test(String(email).trim())) {
+            return res.status(400).json({ success: false, message: "Please provide a valid email address format" });
+        }
+
+        const cleanEmail = String(email).trim().toLowerCase();
+
+        // 1. Check Employees first
+        const employee = await Employees.findOne({ email: cleanEmail });
+        if (employee) {
+            if (employee.status === "active") {
+                const token = crypto.randomBytes(32).toString("hex");
+                employee.recovery_token = token;
+                employee.recovery_token_expires = Date.now() + 3600000; // 1 hour
+                await employee.save();
+                await sendRecoveryEmail(cleanEmail, token);
+            }
+            return res.status(200).json({
+                success: true,
+                message: "Si la cuenta está registrada, se ha enviado un correo con instrucciones de recuperación"
+            });
+        }
+
+        // 2. Check Clients next
+        const client = await Clients.findOne({ email: cleanEmail });
+        if (client) {
+            if (client.status === "active") {
+                const token = crypto.randomBytes(32).toString("hex");
+                client.recovery_token = token;
+                client.recovery_token_expires = Date.now() + 3600000; // 1 hour
+                await client.save();
+                await sendRecoveryEmail(cleanEmail, token);
+            }
+            return res.status(200).json({
+                success: true,
+                message: "Si la cuenta está registrada, se ha enviado un correo con instrucciones de recuperación"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Si la cuenta está registrada, se ha enviado un correo con instrucciones de recuperación"
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const clientRecoveryReset = async (req, res, next) => {
+    try {
+        const { token, newPassword } = req.body;
+        if (!token || !newPassword) {
+            return res.status(400).json({ success: false, message: "Token and newPassword are required" });
+        }
+
+        if (String(newPassword).length < 6) {
+            return res.status(400).json({ success: false, message: "New password must be at least 6 characters long" });
+        }
+
+        // 1. Search in Employees
+        const employee = await Employees.findOne({
+            recovery_token: token,
+            recovery_token_expires: { $gt: new Date() }
+        });
+
+        if (employee) {
+            employee.password = newPassword;
+            employee.recovery_token = null;
+            employee.recovery_token_expires = null;
+            await employee.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Password reset successfully"
+            });
+        }
+
+        // 2. Search in Clients
+        const client = await Clients.findOne({
+            recovery_token: token,
+            recovery_token_expires: { $gt: new Date() }
+        });
+
+        if (client) {
+            client.password = newPassword;
+            client.recovery_token = null;
+            client.recovery_token_expires = null;
+            await client.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Password reset successfully"
+            });
+        }
+
+        return res.status(400).json({
+            success: false,
+            message: "The recovery token is invalid or has expired"
         });
     } catch (error) {
         next(error);

@@ -8,6 +8,7 @@ import Cart from "./pages/Cart.jsx";
 import Profile from "./pages/Profile.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import AuthService from "./services/auth.js";
+import RecoveryReset from "./pages/RecoveryReset.jsx";
 
 // Base API URL pointing to our local backend server
 export const API_BASE_URL = "http://localhost:3000/api";
@@ -16,6 +17,18 @@ function App() {
   // Global States
   const [view, setView] = useState("home"); // home, catalog, detail, customizer, cart, profile
   const [activeProductId, setActiveProductId] = useState(null);
+  const [recoveryToken, setRecoveryToken] = useState("");
+
+  // Handle URL query parameters on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get("view");
+    const tokenParam = params.get("token");
+    if (viewParam === "recovery-reset" && tokenParam) {
+      setRecoveryToken(tokenParam);
+      setView("recovery-reset");
+    }
+  }, []);
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("dermablend_user");
     return saved ? JSON.parse(saved) : null;
@@ -224,6 +237,13 @@ function App() {
             user={user}
             token={token}
             handleLogout={handleLogout}
+            navigateTo={navigateTo}
+          />
+        );
+      case "recovery-reset":
+        return (
+          <RecoveryReset
+            token={recoveryToken}
             navigateTo={navigateTo}
           />
         );

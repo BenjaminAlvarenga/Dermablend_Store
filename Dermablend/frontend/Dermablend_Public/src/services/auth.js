@@ -19,6 +19,20 @@ const AuthService = {
     return request("/auth/profile", {
       method: "GET"
     });
+  },
+
+  requestRecovery: async (email) => {
+    return request("/auth/recovery/request", {
+      method: "POST",
+      body: JSON.stringify({ email })
+    });
+  },
+
+  resetPassword: async (token, newPassword) => {
+    return request("/auth/recovery/reset", {
+      method: "POST",
+      body: JSON.stringify({ token, newPassword })
+    });
   }
 };
 

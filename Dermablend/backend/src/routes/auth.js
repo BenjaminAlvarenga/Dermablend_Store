@@ -6,7 +6,9 @@ import {
     employeeLogin,
     unifiedLogin,
     logout,
-    getProfile
+    getProfile,
+    clientRecoveryRequest,
+    clientRecoveryReset
 } from "../controller/authController.js";
 import { authMiddleware, roleMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -18,6 +20,8 @@ router.post("/login/client", clientLogin);
 router.post("/login/employee", employeeLogin);
 router.post("/login", unifiedLogin);
 router.post("/logout", logout);
+router.post("/recovery/request", clientRecoveryRequest);
+router.post("/recovery/reset", clientRecoveryReset);
 
 // Protected profile route
 router.get("/profile", authMiddleware, getProfile);

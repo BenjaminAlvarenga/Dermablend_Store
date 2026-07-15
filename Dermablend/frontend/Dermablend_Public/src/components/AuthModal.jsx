@@ -96,13 +96,14 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
     setLoading(true);
 
     try {
-      // Mocking recovery code message. If backend handles it, we fetch, but to offer a premium UI:
-      setSuccess("Código de recuperación enviado. Revisa tu correo.");
+      const data = await AuthService.requestRecovery(recoveryEmail.trim());
+      setSuccess(data.message || "Enlace de recuperación enviado. Revisa tu correo.");
       setTimeout(() => {
         setActiveTab("login");
-      }, 2500);
+        setRecoveryEmail("");
+      }, 3000);
     } catch (err) {
-      setError("Error al enviar código.");
+      setError(err.message || "Error al enviar la solicitud de recuperación.");
     } finally {
       setLoading(false);
     }

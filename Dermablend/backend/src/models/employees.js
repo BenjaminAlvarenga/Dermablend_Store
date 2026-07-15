@@ -48,6 +48,14 @@ const employeeSchema = new Schema(
         public_id: {
             type: String,
             default: ""
+        },
+        recovery_token: {
+            type: String,
+            default: null
+        },
+        recovery_token_expires: {
+            type: Date,
+            default: null
         }
     },
     {
