@@ -1,122 +1,248 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import Navbar from "./components/Navbar.jsx";
+import Home from "./pages/Home.jsx";
+import Catalog from "./pages/Catalog.jsx";
+import ProductDetail from "./pages/ProductDetail.jsx";
+import Customizer from "./pages/Customizer.jsx";
+import Cart from "./pages/Cart.jsx";
+import Profile from "./pages/Profile.jsx";
+import AuthModal from "./components/AuthModal.jsx";
+
+// Base API URL pointing to our local backend server
+export const API_BASE_URL = "http://localhost:3000/api";
 
 function App() {
-  const [count, setCount] = useState(0)
+  // Global States
+  const [view, setView] = useState("home"); // home, catalog, detail, customizer, cart, profile
+  const [activeProductId, setActiveProductId] = useState(null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("dermablend_user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem("dermablend_token") || null;
+  });
+  const [cart, setCart] = useState(() => {
+    const saved = localStorage.getItem("dermablend_cart");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem("dermablend_favorites");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authTab, setAuthTab] = useState("login"); // login, register, recovery
+
+  // Save changes to localStorage
+  useEffect(() => {
+    localStorage.setItem("dermablend_cart", JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem("dermablend_favorites", JSON.stringify(favorites));
+  }, [favorites]);
+
+  // Auth actions
+  const handleLogin = (userData, tokenString) => {
+    setUser(userData);
+    setToken(tokenString);
+    localStorage.setItem("dermablend_user", JSON.stringify(userData));
+    localStorage.setItem("dermablend_token", tokenString);
+    setIsAuthOpen(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("dermablend_user");
+    localStorage.removeItem("dermablend_token");
+    setView("home");
+  };
+
+  // Cart actions
+  const addToCart = (product, quantity = 1) => {
+    setCart((prevCart) => {
+      const existing = prevCart.find((item) => item.product_id === product._id);
+      if (existing) {
+        return prevCart.map((item) =>
+          item.product_id === product._id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+      return [
+        ...prevCart,
+        {
+          product_id: product._id,
+          quantity: quantity,
+          price: product.price,
+          product: product
+        }
+      ];
+    });
+  };
+
+  const removeFromCart = (productId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.product_id !== productId));
+  };
+
+  const updateCartQuantity = (productId, newQty) => {
+    if (newQty <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.product_id === productId ? { ...item, quantity: newQty } : item
+      )
+    );
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  // Favorites actions
+  const toggleFavorite = (productId) => {
+    setFavorites((prev) => {
+      if (prev.includes(productId)) {
+        return prev.filter((id) => id !== productId);
+      }
+      return [...prev, productId];
+    });
+  };
+
+  // Navigation router
+  const navigateTo = (newView, productId = null) => {
+    setView(newView);
+    if (newView === "detail" && productId) {
+      setActiveProductId(productId);
+    } else {
+      setActiveProductId(null);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Search execution
+  const executeSearch = (query) => {
+    setSearchQuery(query);
+    setView("catalog");
+  };
+
+  // Render current view
+  const renderView = () => {
+    switch (view) {
+      case "home":
+        return (
+          <Home
+            navigateTo={navigateTo}
+            addToCart={addToCart}
+            toggleFavorite={toggleFavorite}
+            favorites={favorites}
+          />
+        );
+      case "catalog":
+        return (
+          <Catalog
+            navigateTo={navigateTo}
+            addToCart={addToCart}
+            toggleFavorite={toggleFavorite}
+            favorites={favorites}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+        );
+      case "detail":
+        return (
+          <ProductDetail
+            productId={activeProductId}
+            navigateTo={navigateTo}
+            addToCart={addToCart}
+            toggleFavorite={toggleFavorite}
+            favorites={favorites}
+            user={user}
+            token={token}
+            openAuth={() => {
+              setAuthTab("login");
+              setIsAuthOpen(true);
+            }}
+          />
+        );
+      case "customizer":
+        return (
+          <Customizer
+            user={user}
+            token={token}
+            navigateTo={navigateTo}
+            openAuth={() => {
+              setAuthTab("login");
+              setIsAuthOpen(true);
+            }}
+          />
+        );
+      case "cart":
+        return (
+          <Cart
+            cart={cart}
+            user={user}
+            token={token}
+            updateCartQuantity={updateCartQuantity}
+            removeFromCart={removeFromCart}
+            clearCart={clearCart}
+            navigateTo={navigateTo}
+            openAuth={() => {
+              setAuthTab("login");
+              setIsAuthOpen(true);
+            }}
+          />
+        );
+      case "profile":
+        return (
+          <Profile
+            user={user}
+            token={token}
+            handleLogout={handleLogout}
+            navigateTo={navigateTo}
+          />
+        );
+      default:
+        return <Home navigateTo={navigateTo} />;
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <Navbar
+        view={view}
+        navigateTo={navigateTo}
+        user={user}
+        cartCount={cart.reduce((total, item) => total + item.quantity, 0)}
+        favoritesCount={favorites.length}
+        executeSearch={executeSearch}
+        openAuth={(tab = "login") => {
+          setAuthTab(tab);
+          setIsAuthOpen(true);
+        }}
+        handleLogout={handleLogout}
+      />
 
-      <div className="ticks"></div>
+      <main style={{ flexGrow: 1, paddingBottom: "60px" }}>{renderView()}</main>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Auth Modal Trigger popup */}
+      {isAuthOpen && (
+        <AuthModal
+          activeTab={authTab}
+          setActiveTab={setAuthTab}
+          onClose={() => setIsAuthOpen(false)}
+          onLogin={handleLogin}
+        />
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
