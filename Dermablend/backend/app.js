@@ -12,6 +12,7 @@ import productRoutes from "./src/routes/products.js";
 import promotionRoutes from "./src/routes/promotions.js";
 import reviewRoutes from "./src/routes/reviews.js";
 import uploadRoutes from "./src/routes/upload.js";
+import cartController from "./src/controller/cartController.js";
 
 const app = express();
 
