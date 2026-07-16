@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { API_BASE_URL } from "../App.jsx";
 
 function Cart({
@@ -72,8 +73,11 @@ function Cart({
 
       setOrderCompleteData(data.data);
       clearCart();
+      toast.success("¡Pedido realizado con éxito!");
     } catch (err) {
-      setError(err.message || "Error al completar tu compra.");
+      const message = err.message || "Error al completar tu compra.";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

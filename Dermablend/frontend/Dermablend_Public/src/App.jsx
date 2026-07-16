@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+  useParams,
+  useSearchParams
+} from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import Catalog from "./pages/Catalog.jsx";
@@ -8,26 +19,41 @@ import Cart from "./pages/Cart.jsx";
 import Profile from "./pages/Profile.jsx";
 import AuthModal from "./components/AuthModal.jsx";
 import RecoveryReset from "./pages/RecoveryReset.jsx";
+import VerifyEmail from "./pages/VerifyEmail.jsx";
 
 // Base API URL pointing to our local backend server
 export const API_BASE_URL = "http://localhost:3000/api";
 
-function App() {
-  // Global States
-  const [view, setView] = useState("home"); // home, catalog, detail, customizer, cart, profile
-  const [activeProductId, setActiveProductId] = useState(null);
-  const [recoveryToken, setRecoveryToken] = useState("");
+// Route wrapper: reads the product id from the URL for ProductDetail
+function ProductDetailRoute(props) {
+  const { id } = useParams();
+  return <ProductDetail {...props} productId={id} />;
+}
 
-  // Handle URL query parameters on load
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const viewParam = params.get("view");
-    const tokenParam = params.get("token");
-    if (viewParam === "recovery-reset" && tokenParam) {
-      setRecoveryToken(tokenParam);
-      setView("recovery-reset");
-    }
-  }, []);
+// Route wrapper: reads the recovery token from the query string
+function RecoveryResetRoute({ navigateTo }) {
+  const [searchParams] = useSearchParams();
+  return <RecoveryReset token={searchParams.get("token") || ""} navigateTo={navigateTo} />;
+}
+
+// Route wrapper: reads the email-verification token from the query string
+function VerifyEmailRoute({ navigateTo }) {
+  const [searchParams] = useSearchParams();
+  return <VerifyEmail token={searchParams.get("token") || ""} navigateTo={navigateTo} />;
+}
+
+// Redirects to home if there is no authenticated user
+function ProtectedRoute({ user, children }) {
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
+function AppShell() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("dermablend_user");
     return saved ? JSON.parse(saved) : null;
@@ -71,7 +97,7 @@ function App() {
     setToken(null);
     localStorage.removeItem("dermablend_user");
     localStorage.removeItem("dermablend_token");
-    setView("home");
+    navigate("/");
   };
 
   // Validate session on mount
@@ -95,6 +121,7 @@ function App() {
           handleLogout();
         });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // Cart actions
@@ -150,115 +177,52 @@ function App() {
     });
   };
 
-  // Navigation router
+  // Maps the app's logical "view" names to real URLs, and navigates there.
+  // Kept as `navigateTo(view, id)` so existing page components don't need to change.
+  const viewPaths = {
+    home: "/",
+    catalog: "/catalog",
+    customizer: "/customizer",
+    cart: "/cart",
+    profile: "/profile"
+  };
+
   const navigateTo = (newView, productId = null) => {
-    setView(newView);
     if (newView === "detail" && productId) {
-      setActiveProductId(productId);
+      navigate(`/product/${productId}`);
     } else {
-      setActiveProductId(null);
+      navigate(viewPaths[newView] || "/");
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Derives the current "view" name from the URL, for Navbar active-link highlighting
+  const view = (() => {
+    const path = location.pathname;
+    if (path === "/") return "home";
+    if (path.startsWith("/catalog")) return "catalog";
+    if (path.startsWith("/product/")) return "detail";
+    if (path.startsWith("/customizer")) return "customizer";
+    if (path.startsWith("/cart")) return "cart";
+    if (path.startsWith("/profile")) return "profile";
+    return "";
+  })();
+
   // Search execution
   const executeSearch = (query) => {
     setSearchQuery(query);
-    setView("catalog");
+    navigate("/catalog");
   };
 
-  // Render current view
-  const renderView = () => {
-    switch (view) {
-      case "home":
-        return (
-          <Home
-            navigateTo={navigateTo}
-            addToCart={addToCart}
-            toggleFavorite={toggleFavorite}
-            favorites={favorites}
-          />
-        );
-      case "catalog":
-        return (
-          <Catalog
-            navigateTo={navigateTo}
-            addToCart={addToCart}
-            toggleFavorite={toggleFavorite}
-            favorites={favorites}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-          />
-        );
-      case "detail":
-        return (
-          <ProductDetail
-            productId={activeProductId}
-            navigateTo={navigateTo}
-            addToCart={addToCart}
-            toggleFavorite={toggleFavorite}
-            favorites={favorites}
-            user={user}
-            token={token}
-            openAuth={() => {
-              setAuthTab("login");
-              setIsAuthOpen(true);
-            }}
-          />
-        );
-      case "customizer":
-        return (
-          <Customizer
-            user={user}
-            token={token}
-            navigateTo={navigateTo}
-            openAuth={() => {
-              setAuthTab("login");
-              setIsAuthOpen(true);
-            }}
-          />
-        );
-      case "cart":
-        return (
-          <Cart
-            cart={cart}
-            user={user}
-            token={token}
-            updateCartQuantity={updateCartQuantity}
-            removeFromCart={removeFromCart}
-            clearCart={clearCart}
-            navigateTo={navigateTo}
-            openAuth={() => {
-              setAuthTab("login");
-              setIsAuthOpen(true);
-            }}
-          />
-        );
-      case "profile":
-        return (
-          <Profile
-            user={user}
-            token={token}
-            handleLogout={handleLogout}
-            navigateTo={navigateTo}
-          />
-        );
-      case "recovery-reset":
-        return (
-          <RecoveryReset
-            token={recoveryToken}
-            navigateTo={navigateTo}
-          />
-        );
-      default:
-        return <Home navigateTo={navigateTo} />;
-    }
+  const openAuth = (tab = "login") => {
+    setAuthTab(tab);
+    setIsAuthOpen(true);
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
+
       <Navbar
         view={view}
         navigateTo={navigateTo}
@@ -266,14 +230,86 @@ function App() {
         cartCount={cart.reduce((total, item) => total + item.quantity, 0)}
         favoritesCount={favorites.length}
         executeSearch={executeSearch}
-        openAuth={(tab = "login") => {
-          setAuthTab(tab);
-          setIsAuthOpen(true);
-        }}
+        openAuth={openAuth}
         handleLogout={handleLogout}
       />
 
-      <main style={{ flexGrow: 1, paddingBottom: "60px" }}>{renderView()}</main>
+      <main style={{ flexGrow: 1, paddingBottom: "60px" }}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Home
+                navigateTo={navigateTo}
+                addToCart={addToCart}
+                toggleFavorite={toggleFavorite}
+                favorites={favorites}
+              />
+            }
+          />
+          <Route
+            path="/catalog"
+            element={
+              <Catalog
+                navigateTo={navigateTo}
+                addToCart={addToCart}
+                toggleFavorite={toggleFavorite}
+                favorites={favorites}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+              />
+            }
+          />
+          <Route
+            path="/product/:id"
+            element={
+              <ProductDetailRoute
+                navigateTo={navigateTo}
+                addToCart={addToCart}
+                toggleFavorite={toggleFavorite}
+                favorites={favorites}
+                user={user}
+                token={token}
+                openAuth={openAuth}
+              />
+            }
+          />
+          <Route
+            path="/customizer"
+            element={
+              <Customizer user={user} token={token} navigateTo={navigateTo} openAuth={openAuth} />
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              <Cart
+                cart={cart}
+                user={user}
+                token={token}
+                updateCartQuantity={updateCartQuantity}
+                removeFromCart={removeFromCart}
+                clearCart={clearCart}
+                navigateTo={navigateTo}
+                openAuth={openAuth}
+              />
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute user={user}>
+                <Profile user={user} token={token} handleLogout={handleLogout} navigateTo={navigateTo} />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/reset-password" element={<RecoveryResetRoute navigateTo={navigateTo} />} />
+          <Route path="/verify-email" element={<VerifyEmailRoute navigateTo={navigateTo} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
 
       {/* Auth Modal Trigger popup */}
       {isAuthOpen && (
@@ -285,6 +321,14 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
   );
 }
 
