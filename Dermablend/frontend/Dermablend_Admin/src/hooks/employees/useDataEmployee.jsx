@@ -104,6 +104,8 @@ const useDataEmployee = (methods) => {
                 hire_date: employee?.hire_date ? employee.hire_date.slice(0, 10) : "",
                 salary: employee?.salary,
                 status: employee?.status,
+                image: employee?.image,
+                public_id: employee?.public_id,
             })
         }
     }

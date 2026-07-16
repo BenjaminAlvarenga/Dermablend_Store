@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import ProductsService from "../../services/Products";
+import ClientsService from "../../services/Clients";
 
 const DataTestOrders = ({ id, register, errors, control, onSubmit, onCancel }) => {
   const [products, setProducts] = useState([]);
+  const [clients, setClients] = useState([]);
   const { fields, append, remove } = useFieldArray({ control, name: "products" });
 
   useEffect(() => {
     ProductsService.get()
       .then((response) => setProducts(response.data || []))
       .catch(() => setProducts([]));
+
+    ClientsService.get()
+      .then((response) => setClients(response.data || []))
+      .catch(() => setClients([]));
   }, []);
 
   const productName = (productId) =>
@@ -38,15 +44,20 @@ const DataTestOrders = ({ id, register, errors, control, onSubmit, onCancel }) =
       <form className="space-y-4" onSubmit={onSubmit}>
         <div>
           <label htmlFor="client_id" className="block text-sm font-medium text-gray-700">
-            Cliente (ID)
+            Cliente
           </label>
-          <input
-            type="text"
+          <select
             id="client_id"
             {...register("client_id", { required: "El cliente es obligatorio" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="Ingresa el id del cliente"
-          />
+          >
+            <option value="">Selecciona un cliente</option>
+            {clients.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name} ({c.email})
+              </option>
+            ))}
+          </select>
           {errors?.client_id ? (
             <p className="mt-1 text-sm text-red-600">{errors.client_id.message}</p>
           ) : null}

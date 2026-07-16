@@ -1,4 +1,30 @@
-const DataTestEmployee = ({ id, register, errors, onSubmit, onCancel }) => {
+import { useState } from "react";
+import UploadService from "../../services/Upload";
+
+const DataTestEmployee = ({ id, register, errors, onSubmit, onCancel, setValue, watch }) => {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const imageUrl = watch ? watch("image") : "";
+
+  const handleImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const result = await UploadService.uploadImage(file);
+      setValue("image", result.url);
+      setValue("public_id", result.public_id);
+    } catch (error) {
+      console.error("Error subiendo la imagen:", error);
+      setUploadError(error.message || "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <section className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
       <div className="flex items-start justify-between gap-4 mb-6">
@@ -131,6 +157,35 @@ const DataTestEmployee = ({ id, register, errors, onSubmit, onCancel }) => {
             <option value="active">Activo</option>
             <option value="inactive">Inactivo</option>
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="image" className="block text-sm font-medium text-gray-700">
+            Foto de perfil
+          </label>
+          <input
+            type="file"
+            id="image"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
+          <input type="hidden" {...register("image")} />
+          <input type="hidden" {...register("public_id")} />
+
+          {uploading ? (
+            <p className="mt-1 text-sm text-gray-500">Subiendo imagen...</p>
+          ) : null}
+          {uploadError ? (
+            <p className="mt-1 text-sm text-red-600">{uploadError}</p>
+          ) : null}
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt="Vista previa"
+              className="mt-2 h-24 w-24 rounded-full border border-gray-200 object-cover"
+            />
+          ) : null}
         </div>
 
         <button

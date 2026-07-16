@@ -11,6 +11,7 @@ import orderRoutes from "./src/routes/orders.js";
 import productRoutes from "./src/routes/products.js";
 import promotionRoutes from "./src/routes/promotions.js";
 import reviewRoutes from "./src/routes/reviews.js";
+import uploadRoutes from "./src/routes/upload.js";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Root route placeholder
 app.get("/", (req, res) => {

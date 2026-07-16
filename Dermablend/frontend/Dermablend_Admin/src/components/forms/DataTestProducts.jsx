@@ -1,4 +1,30 @@
-const DataTestProducts = ({ id, register, errors, onSubmit, onCancel }) => {
+import { useState } from "react";
+import UploadService from "../../services/Upload";
+
+const DataTestProducts = ({ id, register, errors, onSubmit, onCancel, setValue, watch }) => {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const imageUrl = watch ? watch("image") : "";
+
+  const handleImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const result = await UploadService.uploadImage(file);
+      setValue("image", result.url, { shouldValidate: true });
+      setValue("public_id", result.public_id);
+    } catch (error) {
+      console.error("Error subiendo la imagen:", error);
+      setUploadError(error.message || "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <section className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
       <div className="flex items-start justify-between gap-4 mb-6">
@@ -171,15 +197,31 @@ const DataTestProducts = ({ id, register, errors, onSubmit, onCancel }) => {
 
         <div>
           <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-            Imagen (URL)
+            Imagen
           </label>
           <input
-            type="text"
+            type="file"
             id="image"
-            {...register("image", { required: "La imagen es obligatoria" })}
+            accept="image/*"
+            onChange={handleImageChange}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="Ingresa la URL de la imagen"
           />
+          <input type="hidden" {...register("image", { required: "La imagen es obligatoria" })} />
+          <input type="hidden" {...register("public_id")} />
+
+          {uploading ? (
+            <p className="mt-1 text-sm text-gray-500">Subiendo imagen...</p>
+          ) : null}
+          {uploadError ? (
+            <p className="mt-1 text-sm text-red-600">{uploadError}</p>
+          ) : null}
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt="Vista previa"
+              className="mt-2 h-24 w-24 rounded-lg border border-gray-200 object-cover"
+            />
+          ) : null}
           {errors?.image ? (
             <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>
           ) : null}

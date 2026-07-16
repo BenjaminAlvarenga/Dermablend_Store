@@ -172,7 +172,7 @@ export const updateReview = async (req, res, next) => {
             });
         }
 
-        if (!["Admin", "Employee"].includes(req.user.role) && review.client_id.toString() !== req.user.id.toString()) {
+        if (review.client_id.toString() !== req.user.id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Forbidden: You can only edit your own reviews"
@@ -268,7 +268,7 @@ export const deleteReview = async (req, res, next) => {
             });
         }
 
-        if (!["Admin", "Employee"].includes(req.user.role) && review.client_id.toString() !== req.user.id.toString()) {
+        if (review.client_id.toString() !== req.user.id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Forbidden: You can only delete your own reviews"

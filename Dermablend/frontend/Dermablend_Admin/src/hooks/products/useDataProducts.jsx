@@ -107,6 +107,7 @@ const useDataProducts = (methods) => {
                 description: product?.description,
                 is_customizable: product?.is_customizable,
                 image: product?.image,
+                public_id: product?.public_id,
                 skin_type_compatible: product?.skin_type_compatible,
             })
         }

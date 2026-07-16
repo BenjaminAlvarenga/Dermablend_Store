@@ -21,7 +21,9 @@ const DataTestListOrders = ({ dataOrders, onEdit, onDelete }) => {
             <tbody className="divide-y divide-gray-100">
               {dataOrders.map((item) => (
                 <tr key={item._id} className="text-sm text-gray-700">
-                  <td className="px-4 py-3 font-medium text-gray-900">{item.client_id}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    {item.client_id?.name || item.client_id}
+                  </td>
                   <td className="px-4 py-3">{item.total_amount}</td>
                   <td className="px-4 py-3">{item.status}</td>
                   <td className="px-4 py-3">{item.payment_method}</td>
