@@ -151,6 +151,20 @@ const DataTestClients = ({ id, register, errors, onSubmit, onCancel }) => {
           </select>
         </div>
 
+        {id ? (
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="is_verified"
+              {...register("is_verified")}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+            <label htmlFor="is_verified" className="text-sm font-medium text-gray-700">
+              Correo verificado (permite al cliente realizar compras)
+            </label>
+          </div>
+        ) : null}
+
         <button
           type="submit"
           className="w-full rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition hover:bg-green-300"

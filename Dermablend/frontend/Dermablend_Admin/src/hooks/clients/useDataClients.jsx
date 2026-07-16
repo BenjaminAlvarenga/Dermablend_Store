@@ -105,6 +105,7 @@ const useDataClients = (methods) => {
                 skin_type: client?.skin_type,
                 skin_tone: client?.skin_tone,
                 status: client?.status,
+                is_verified: client?.is_verified,
             })
         }
     }
