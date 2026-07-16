@@ -18,7 +18,7 @@ const links = [
   { to: "/products", label: "Productos", icon: FiBox },
   { to: "/orders", label: "Orders", icon: FiFolder },
   { to: "/reviews", label: "Reviews", icon: FiEdit2 },
-  { to: "/perfil", label: "Perfil", icon: FiUser },
+  { to: "/profile", label: "Profile", icon: FiUser },
 ];
 
 const Sidebar = ({ open = false, onClose = () => {} }) => {
