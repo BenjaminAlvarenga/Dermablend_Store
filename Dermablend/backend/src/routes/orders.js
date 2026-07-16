@@ -13,8 +13,8 @@ const router = Router();
 // Protect all order routes
 router.use(authMiddleware);
 
-// Get all orders - Admin and Employees only
-router.get("/", roleMiddleware(["Admin", "Employee"]), getAllOrders);
+// Get all orders - Admin/Employee see everything, Clients only see their own (enforced in controller)
+router.get("/", getAllOrders);
 
 // Get order details - Admin, Employee, or the client who placed it
 router.get("/:id", getOrderById);
@@ -22,8 +22,9 @@ router.get("/:id", getOrderById);
 // Create order - Anyone logged in (Clients)
 router.post("/", createOrder);
 
-// Update order status/shipping - Admin and Employees only
-router.put("/:id", roleMiddleware(["Admin", "Employee"]), updateOrder);
+// Update order status/shipping - Admin/Employee can edit anything,
+// Clients can only cancel their own pending order (enforced in controller)
+router.put("/:id", updateOrder);
 
 // Delete order (with stock restoration) - Admin only
 router.delete("/:id", roleMiddleware(["Admin"]), deleteOrder);

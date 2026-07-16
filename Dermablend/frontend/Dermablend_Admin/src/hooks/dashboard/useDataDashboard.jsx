@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import DashboardService from "../../services/Dashboard";
 
 const useDataDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasFetched = useRef(false);
 
   const getStats = async () => {
     try {
@@ -19,6 +20,8 @@ const useDataDashboard = () => {
   };
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     getStats();
   }, []);
 

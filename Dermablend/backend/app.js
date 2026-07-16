@@ -2,14 +2,16 @@ import express from "express";
 import cookieParser from "cookie-parser";
 
 // Import API routes
-import authRoutes from "./src/routes/auth.js";
+import authRoutes from "./src/routes/authRoutes.js";
 import clientRoutes from "./src/routes/clients.js";
 import customizationRoutes from "./src/routes/customizations.js";
+import dashboardRoutes from "./src/routes/dashboard.js";
 import employeeRoutes from "./src/routes/employees.js";
 import orderRoutes from "./src/routes/orders.js";
 import productRoutes from "./src/routes/products.js";
 import promotionRoutes from "./src/routes/promotions.js";
 import reviewRoutes from "./src/routes/reviews.js";
+import uploadRoutes from "./src/routes/upload.js";
 
 const app = express();
 
@@ -46,11 +48,13 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/customizations", customizationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Root route placeholder
 app.get("/", (req, res) => {
@@ -93,7 +97,7 @@ app.use((err, req, res, next) => {
         });
     }
 
-    const statusCode = err.statusCode || 500;
+    const statusCode = err.statusCode || err.status || 500;
     res.status(statusCode).json({
         success: false,
         message: err.message || "Internal Server Error"

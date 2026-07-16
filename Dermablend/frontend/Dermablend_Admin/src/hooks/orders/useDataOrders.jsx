@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import OrdersService from "../../services/Orders";
+import { confirmToast } from "../../utils/confirmToast";
 
 const useDataOrders = (methods) => {
   const [dataOrders, setDataOrders] = useState([]);
   const { id } = useParams();
+  const hasFetched = useRef(false);
 
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = methods;
 
@@ -19,7 +22,7 @@ const useDataOrders = (methods) => {
   const getOrders = async () => {
     try {
       const data = await OrdersService.get();
-      setDataOrders(data);
+      setDataOrders(data.data || []);
     } catch (error) {
       console.log("Error al obtener las ordenes:", error);
       toast.error("Error al obtener las ordenes");
@@ -28,7 +31,8 @@ const useDataOrders = (methods) => {
 
   const getOrderById = async (id) => {
     try {
-      return await OrdersService.getById(id);
+      const response = await OrdersService.getById(id);
+      return response.data;
     } catch (error) {
       console.log("Error al obtener la orden:", error);
       toast.error("Error al obtener la orden");
@@ -64,6 +68,9 @@ const useDataOrders = (methods) => {
   };
 
   const deleteOrder = async (id) => {
+    const confirmed = await confirmToast("¿Seguro que deseas eliminar esta orden?");
+    if (!confirmed) return;
+
     try {
       await OrdersService.delete(id);
       toast.success("Orden eliminada correctamente");
@@ -92,8 +99,11 @@ const useDataOrders = (methods) => {
         const order = await getOrderById(id);
         if(order) {
             reset({
-                client_id: order?.client_id,
-                products: order?.products,
+                client_id: order?.client_id?._id || order?.client_id,
+                products: order?.products?.map((p) => ({
+                    product_id: p.product_id?._id || p.product_id,
+                    quantity: p.quantity,
+                })),
                 total_amount: order?.total_amount,
                 status: order?.status,
                 payment_method: order?.payment_method,
@@ -105,6 +115,8 @@ const useDataOrders = (methods) => {
   }
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     getOrders();
   }, []);
 
@@ -116,6 +128,7 @@ const useDataOrders = (methods) => {
     dataOrders,
     setDataOrders,
     register,
+    control,
     handleSubmit: handleSubmit(handleOrderAction),
     errors,
     getOrders,

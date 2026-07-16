@@ -136,8 +136,13 @@ export const updateClient = async (req, res, next) => {
         if (skin_type && skin_type.trim()) client.skin_type = skin_type;
         if (skin_tone && skin_tone.trim()) client.skin_tone = skin_tone;
         if (favorites !== undefined) client.favorites = favorites;
-        if (is_verified !== undefined) client.is_verified = is_verified;
-        if (status) client.status = status;
+
+        // Only Admin/Employee can change verification or account status
+        // (prevents a client from self-verifying or reactivating their own account)
+        if (["Admin", "Employee"].includes(req.user.role)) {
+            if (is_verified !== undefined) client.is_verified = is_verified;
+            if (status) client.status = status;
+        }
 
         await client.save();
 

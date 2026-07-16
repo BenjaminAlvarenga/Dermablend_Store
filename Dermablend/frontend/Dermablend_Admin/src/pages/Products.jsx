@@ -80,6 +80,8 @@ const Products = () => {
               id={id}
               register={register}
               errors={errors}
+              setValue={methods.setValue}
+              watch={methods.watch}
               onSubmit={handleSubmit}
               onCancel={cancelForm}
             />

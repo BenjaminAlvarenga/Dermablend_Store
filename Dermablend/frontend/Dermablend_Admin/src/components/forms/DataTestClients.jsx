@@ -77,9 +77,12 @@ const DataTestClients = ({ id, register, errors, onSubmit, onCancel }) => {
           <input
             type="date"
             id="birthdate"
-            {...register("birthdate")}
+            {...register("birthdate", { required: "La fecha de nacimiento es obligatoria" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
+          {errors?.birthdate ? (
+            <p className="mt-1 text-sm text-red-600">{errors.birthdate.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -89,22 +92,63 @@ const DataTestClients = ({ id, register, errors, onSubmit, onCancel }) => {
           <input
             type="text"
             id="phone"
-            {...register("phone")}
+            {...register("phone", { required: "El teléfono es obligatorio" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Ingresa el teléfono"
           />
+          {errors?.phone ? (
+            <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+          ) : null}
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="isActive"
-            {...register("isActive")}
-            className="h-4 w-4 rounded border-gray-300"
-          />
-          <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
-            Activo
+        <div>
+          <label htmlFor="skin_type" className="block text-sm font-medium text-gray-700">
+            Tipo de piel
           </label>
+          <select
+            id="skin_type"
+            {...register("skin_type", { required: "El tipo de piel es obligatorio" })}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="grasa">Grasa</option>
+            <option value="seca">Seca</option>
+            <option value="mixta">Mixta</option>
+          </select>
+          {errors?.skin_type ? (
+            <p className="mt-1 text-sm text-red-600">{errors.skin_type.message}</p>
+          ) : null}
+        </div>
+
+        <div>
+          <label htmlFor="skin_tone" className="block text-sm font-medium text-gray-700">
+            Tono de piel
+          </label>
+          <select
+            id="skin_tone"
+            {...register("skin_tone", { required: "El tono de piel es obligatorio" })}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="blanca">Blanca</option>
+            <option value="trigueña">Trigueña</option>
+            <option value="morena">Morena</option>
+          </select>
+          {errors?.skin_tone ? (
+            <p className="mt-1 text-sm text-red-600">{errors.skin_tone.message}</p>
+          ) : null}
+        </div>
+
+        <div>
+          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            Estatus
+          </label>
+          <select
+            id="status"
+            {...register("status")}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="active">Activo</option>
+            <option value="inactive">Inactivo</option>
+          </select>
         </div>
 
         <button

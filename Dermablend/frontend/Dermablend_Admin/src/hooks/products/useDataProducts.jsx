@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import ProductsService from "../../services/Products";
+import { confirmToast } from "../../utils/confirmToast";
 
 const useDataProducts = (methods) => {
   const [dataProducts, setDataProducts] = useState([]);
   const { id } = useParams();
+  const hasFetched = useRef(false);
 
   const {
     register,
@@ -19,7 +21,7 @@ const useDataProducts = (methods) => {
   const getProducts = async () => {
     try {
       const data = await ProductsService.get();
-      setDataProducts(data);
+      setDataProducts(data.data || []);
     } catch (error) {
       console.log("Error al obtener los productos:", error);
       toast.error("Error al obtener los productos");
@@ -28,7 +30,8 @@ const useDataProducts = (methods) => {
 
   const getProductById = async (id) => {
     try {
-      return await ProductsService.getById(id);
+      const response = await ProductsService.getById(id);
+      return response.data;
     } catch (error) {
       console.log("Error al obtener el producto:", error);
       toast.error("Error al obtener el producto");
@@ -64,6 +67,9 @@ const useDataProducts = (methods) => {
   };
 
   const deleteProduct = async (id) => {
+    const confirmed = await confirmToast("¿Seguro que deseas eliminar este producto?");
+    if (!confirmed) return;
+
     try {
       await ProductsService.delete(id);
       toast.success("Producto eliminado correctamente");
@@ -101,12 +107,16 @@ const useDataProducts = (methods) => {
                 description: product?.description,
                 is_customizable: product?.is_customizable,
                 image: product?.image,
+                public_id: product?.public_id,
+                skin_type_compatible: product?.skin_type_compatible,
             })
         }
     }
   }
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     getProducts();
   }, []);
 

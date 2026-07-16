@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import ClientsService from "../../services/Clients";
+import { confirmToast } from "../../utils/confirmToast";
 
 const useDataClients = (methods) => {
   const [dataClients, setDataClients] = useState([]);
   const { id } = useParams();
+  const hasFetched = useRef(false);
 
   const {
     register,
@@ -19,7 +21,7 @@ const useDataClients = (methods) => {
   const getClients = async () => {
     try {
       const data = await ClientsService.get();
-      setDataClients(data);
+      setDataClients(data.data || []);
     } catch (error) {
       console.log("Error al obtener los clientes:", error);
       toast.error("Error al obtener los clientes");
@@ -28,7 +30,8 @@ const useDataClients = (methods) => {
 
   const getClientById = async (id) => {
     try {
-      return await ClientsService.getById(id);
+      const response = await ClientsService.getById(id);
+      return response.data;
     } catch (error) {
       console.log("Error al obtener el cliente:", error);
       toast.error("Error al obtener el cliente");
@@ -64,6 +67,9 @@ const useDataClients = (methods) => {
   };
 
   const deleteClient = async (id) => {
+    const confirmed = await confirmToast("¿Seguro que deseas eliminar este cliente?");
+    if (!confirmed) return;
+
     try {
       await ClientsService.delete(id);
       toast.success("Cliente eliminado correctamente");
@@ -94,15 +100,19 @@ const useDataClients = (methods) => {
             reset({
                 name: client?.name,
                 email: client?.email,
-                birthdate: client?.birthdate,
+                birthdate: client?.birthdate ? client.birthdate.slice(0, 10) : "",
                 phone: client?.phone,
-                isActive: client?.isActive,
+                skin_type: client?.skin_type,
+                skin_tone: client?.skin_tone,
+                status: client?.status,
             })
         }
     }
   }
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     getClients();
   }, []);
 

@@ -139,6 +139,13 @@ export const updateCustomization = async (req, res, next) => {
             });
         }
 
+        if (!["Admin", "Employee"].includes(req.user.role) && customization.client_id.toString() !== req.user.id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only edit your own customizations"
+            });
+        }
+
         // Validate client_id if changing
         if (client_id) {
             if (!isValidObjectId(client_id)) {
@@ -221,13 +228,22 @@ export const deleteCustomization = async (req, res, next) => {
             });
         }
 
-        const customization = await Customizations.findByIdAndDelete(id);
+        const customization = await Customizations.findById(id);
         if (!customization) {
             return res.status(404).json({
                 success: false,
                 message: "Customization not found"
             });
         }
+
+        if (!["Admin", "Employee"].includes(req.user.role) && customization.client_id.toString() !== req.user.id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only delete your own customizations"
+            });
+        }
+
+        await Customizations.findByIdAndDelete(id);
 
         return res.status(200).json({
             success: true,

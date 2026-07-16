@@ -52,6 +52,22 @@ const clientSchema = new Schema(
             required: [true, "Status is required"],
             enum: ["active", "inactive"],
             default: "active"
+        },
+        recovery_token: {
+            type: String,
+            default: null
+        },
+        recovery_token_expires: {
+            type: Date,
+            default: null
+        },
+        verification_token: {
+            type: String,
+            default: null
+        },
+        verification_token_expires: {
+            type: Date,
+            default: null
         }
     },
     {

@@ -1,46 +1,21 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
-import DataTestReviews from "../components/forms/DataTestReviews";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DataTestListReviews from "../components/lists/DataTestListReviews";
 import useDataReviews from "../hooks/reviews/useDataReviews";
 
+// Las reseñas solo se pueden leer desde el Admin: crearlas/editarlas/borrarlas
+// es una acción exclusiva del cliente en la tienda pública.
 const Reviews = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
   const token =
     localStorage.getItem("fakestore_token") ||
     sessionStorage.getItem("fakestore_token");
 
-  const methods = useForm();
-  const {
-    dataReviews,
-    register,
-    handleSubmit,
-    errors,
-    deleteReview,
-    handleUpdateReview,
-  } = useDataReviews(methods);
-
-  const [activeTab, setActiveTab] = useState(id ? "form" : "list");
+  const { dataReviews } = useDataReviews();
 
   useEffect(() => {
     if (!token) navigate("/");
   }, [navigate, token]);
-
-  useEffect(() => {
-    setActiveTab(id ? "form" : "list");
-  }, [id]);
-
-  const openCreateForm = () => {
-    methods.reset({});
-    setActiveTab("form");
-  };
-
-  const cancelForm = () => {
-    setActiveTab("list");
-    navigate("/reviews");
-  };
 
   return (
     <div>
@@ -50,46 +25,7 @@ const Reviews = () => {
             <h1 className="text-3xl text-[#472825] font-bold sm:text-4xl">Reseñas</h1>
           </header>
 
-          <div className="mt flex flex-wrap gap-3 justify-end">
-            <button
-              type="button"
-              onClick={() => (id ? cancelForm() : setActiveTab("list"))}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                activeTab === "list"
-                  ? "bg-[#D3AB80] text-slate-900"
-                  : "bg-[#472825] text-white hover:bg-[#D3AB80]/50"
-              }`}
-            >
-              Ver lista
-            </button>
-            <button
-              type="button"
-              onClick={openCreateForm}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                activeTab === "form"
-                  ? "bg-[#D3AB80] text-slate-900"
-                  : "bg-[#472825] text-white hover:bg-[#D3AB80]/50"
-              }`}
-            >
-              Nuevo registro
-            </button>
-          </div>
-
-          {activeTab === "form" ? (
-            <DataTestReviews
-              id={id}
-              register={register}
-              errors={errors}
-              onSubmit={handleSubmit}
-              onCancel={cancelForm}
-            />
-          ) : (
-            <DataTestListReviews
-              dataReviews={dataReviews}
-              onEdit={handleUpdateReview}
-              onDelete={deleteReview}
-            />
-          )}
+          <DataTestListReviews dataReviews={dataReviews} />
         </div>
       </div>
     </div>

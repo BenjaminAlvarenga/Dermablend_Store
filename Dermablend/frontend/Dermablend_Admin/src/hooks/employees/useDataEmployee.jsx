@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import EmployeesService from "../../services/Employees";
+import { confirmToast } from "../../utils/confirmToast";
 
 const useDataEmployee = (methods) => {
   const [dataEmployee, setDataEmployee] = useState([]);
   const { id } = useParams();
+  const hasFetched = useRef(false);
 
   const {
     register,
@@ -19,7 +21,7 @@ const useDataEmployee = (methods) => {
   const getEmployees = async () => {
     try {
       const data = await EmployeesService.get();
-      setDataEmployee(data);
+      setDataEmployee(data.data || []);
     } catch (error) {
       console.log("Error al obtener los empleados:", error);
       toast.error("Error al obtener los empleados");
@@ -28,7 +30,8 @@ const useDataEmployee = (methods) => {
 
   const getEmployeeById = async (id) => {
     try {
-      return await EmployeesService.getById(id);
+      const response = await EmployeesService.getById(id);
+      return response.data;
     } catch (error) {
       console.log("Error al obtener el empleado:", error);
       toast.error("Error al obtener el empleado");
@@ -64,6 +67,9 @@ const useDataEmployee = (methods) => {
   };
 
   const deleteEmployee = async (id) => {
+    const confirmed = await confirmToast("¿Seguro que deseas eliminar este empleado?");
+    if (!confirmed) return;
+
     try {
       await EmployeesService.delete(id);
       toast.success("Empleado eliminado correctamente");
@@ -95,15 +101,19 @@ const useDataEmployee = (methods) => {
                 name: employee?.name,
                 email: employee?.email,
                 role: employee?.role,
-                hire_date: employee?.hire_date,
+                hire_date: employee?.hire_date ? employee.hire_date.slice(0, 10) : "",
                 salary: employee?.salary,
                 status: employee?.status,
+                image: employee?.image,
+                public_id: employee?.public_id,
             })
         }
     }
   }
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     getEmployees();
   }, []);
 

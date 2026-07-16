@@ -16,6 +16,7 @@ const Orders = () => {
   const {
     dataOrders,
     register,
+    control,
     handleSubmit,
     errors,
     deleteOrder,
@@ -79,6 +80,7 @@ const Orders = () => {
             <DataTestOrders
               id={id}
               register={register}
+              control={control}
               errors={errors}
               onSubmit={handleSubmit}
               onCancel={cancelForm}
