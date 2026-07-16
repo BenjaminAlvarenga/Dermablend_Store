@@ -52,6 +52,29 @@ Dermablend_Store/
 
 ---
 
+## Variables de entorno
+
+### `Dermablend/backend/.env`
+
+```env
+DB_URI=""
+PORT=""
+
+JWT_SECRET_KEY="tu-clave-secreta"
+
+USER_EMAIL="tu-correo@gmail.com"
+USER_PASSWORD="tu-contraseña-de-aplicacion-de-gmail"
+
+CLOUDINARY_CLOUD_NAME="..."
+CLOUDINARY_API_KEY="..."
+CLOUDINARY_API_SECRET="..."
+
+CLIENT_ID="..."
+CLIENT_SECRET="..."
+GRANT_TYPE="client_credentials"
+AUDIENCE="wompi_api"
+```
+
 ### `Dermablend/frontend/Dermablend_Admin/.env`
 
 ```env
