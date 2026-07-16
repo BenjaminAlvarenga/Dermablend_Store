@@ -1,15 +1,28 @@
 import { Camera } from "lucide-react";
 import { useRef, useState } from "react";
+import UploadService from "../services/Upload";
 
-function Profile({ form, onChange, onSave }) {
+function Profile({ form, employee, onChange, onImageUploaded, onSave }) {
   const fileInputRef = useRef(null);
-  const [avatarSrc, setAvatarSrc] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setAvatarSrc(url);
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const result = await UploadService.uploadImage(file);
+      onImageUploaded?.({ url: result.url, public_id: result.public_id });
+    } catch (error) {
+      console.error("Error subiendo la imagen:", error);
+      setUploadError(error.message || "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -21,15 +34,15 @@ function Profile({ form, onChange, onSave }) {
 
         <div className="mt-16 grid gap-16 md:grid-cols-2 md:items-center">
           {/* Avatar */}
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center">
             <div className="relative">
               <div
                 className="flex h-72 w-72 items-center justify-center rounded-full overflow-hidden"
                 style={{ border: "1px solid #d6cfc7", backgroundColor: "#f0ece6" }}
               >
-                {avatarSrc ? (
+                {form.image ? (
                   <img
-                    src={avatarSrc}
+                    src={form.image}
                     alt="Avatar"
                     className="h-full w-full object-cover"
                   />
@@ -53,12 +66,20 @@ function Profile({ form, onChange, onSave }) {
                 type="button"
                 aria-label="Cambiar foto"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
                 className="absolute bottom-2 right-6 transition-opacity hover:opacity-70"
                 style={{ color: "#3b2f2f" }}
               >
                 <Camera className="h-7 w-7" strokeWidth={1.75} />
               </button>
             </div>
+
+            {uploading ? (
+              <p className="mt-3 text-sm" style={{ color: "#7a6e66" }}>Subiendo imagen...</p>
+            ) : null}
+            {uploadError ? (
+              <p className="mt-3 text-sm text-red-600">{uploadError}</p>
+            ) : null}
           </div>
 
           {/* Form */}
@@ -72,8 +93,8 @@ function Profile({ form, onChange, onSave }) {
             <Field label="Nombre completo">
               <input
                 type="text"
-                value={form.nombre}
-                onChange={onChange("nombre")}
+                value={form.name}
+                onChange={onChange("name")}
                 style={inputStyle}
               />
             </Field>
@@ -81,27 +102,50 @@ function Profile({ form, onChange, onSave }) {
             <Field label="Correo electrónico">
               <input
                 type="email"
-                value={form.correo}
-                onChange={onChange("correo")}
+                value={form.email}
+                onChange={onChange("email")}
                 style={inputStyle}
               />
             </Field>
 
             <div className="grid grid-cols-2 gap-6">
-              <Field label="Fecha de nacimiento">
+              <Field label="Rol">
                 <input
                   type="text"
-                  value={form.fecha}
-                  onChange={onChange("fecha")}
-                  style={inputStyle}
+                  value={employee?.role || ""}
+                  readOnly
+                  style={{ ...inputStyle, opacity: 0.7, cursor: "not-allowed" }}
                 />
               </Field>
-              <Field label="N. Telefónico">
+              <Field label="Estatus">
                 <input
                   type="text"
-                  value={form.telefono}
-                  onChange={onChange("telefono")}
-                  style={inputStyle}
+                  value={employee?.status === "active" ? "Activo" : "Inactivo"}
+                  readOnly
+                  style={{ ...inputStyle, opacity: 0.7, cursor: "not-allowed" }}
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <Field label="Fecha de contratación">
+                <input
+                  type="text"
+                  value={
+                    employee?.hire_date
+                      ? new Date(employee.hire_date).toLocaleDateString()
+                      : ""
+                  }
+                  readOnly
+                  style={{ ...inputStyle, opacity: 0.7, cursor: "not-allowed" }}
+                />
+              </Field>
+              <Field label="Salario">
+                <input
+                  type="text"
+                  value={employee?.salary ?? ""}
+                  readOnly
+                  style={{ ...inputStyle, opacity: 0.7, cursor: "not-allowed" }}
                 />
               </Field>
             </div>
