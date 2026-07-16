@@ -44,3 +44,28 @@ export const employeeRegister = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * Controller to confirm a client account from the verification email link
+ */
+export const verifyEmail = async (req, res, next) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                message: "Verification token is required"
+            });
+        }
+
+        const result = await RegisterService.verifyEmail(token);
+
+        return res.status(200).json({
+            success: true,
+            ...result
+        });
+    } catch (error) {
+        next(error);
+    }
+};

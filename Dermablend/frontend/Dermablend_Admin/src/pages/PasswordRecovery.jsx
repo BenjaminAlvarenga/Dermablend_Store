@@ -1,36 +1,11 @@
-// Login.jsx contiene la pantalla de inicio de sesión.
-// Para este ejemplo se usa un usuario fijo en memoria y se crea un token falso.
+// PasswordRecovery.jsx solicita el envío del código de recuperación al correo del empleado/admin.
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../img/Dermablend.png";
-
-// Lista de usuarios válidos usados solo para la demo del login.
-// Esta lista no viene de ninguna API; es solo un conjunto de credenciales locales.
-const users = [
-  {
-    id: 1,
-    email: "john@gmail.com",
-    username: "johnd",
-    password: "12345",
-  },
-  {
-    id: 2,
-    email: "morrison@gmail.com",
-    username: "mor_2314",
-    password: "12345",
-  },
-  {
-    id: 3,
-    email: "kevin@gmail.com",
-    username: "kevinryan",
-    password: "12345",
-  },
-];
+import AuthService from "../services/Auth";
 
 const RecoveryPassword = () => {
-  // Estados para controlar los campos del formulario y su comportamiento.
   const [email, setEmail] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -50,13 +25,23 @@ const RecoveryPassword = () => {
     event.preventDefault();
     setError("");
 
-    // Validación simple de los campos antes de continuar.
     if (!email.trim()) {
       setError("Por favor completa email");
       return;
     }
 
     setLoading(true);
+
+    try {
+      await AuthService.requestRecovery(email.trim().toLowerCase());
+      navigate("/verify-code", { state: { email: email.trim() } });
+    } catch (error_) {
+      setError(
+        error_.message || "Error al solicitar el código. Intenta nuevamente.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,7 +88,6 @@ const RecoveryPassword = () => {
 
             <button
               type="submit"
-              onClick={() => navigate("/verify-code")}
               disabled={loading}
               className="flex w-full items-center justify-center rounded-2xl bg-[#472825]/80 px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#472825]/65 disabled:cursor-not-allowed disabled:bg-slate-400"
             >

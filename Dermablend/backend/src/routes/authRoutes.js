@@ -9,7 +9,8 @@ import {
 } from "../controller/loginController.js";
 import {
     clientRegister,
-    employeeRegister
+    employeeRegister,
+    verifyEmail
 } from "../controller/registerController.js";
 import {
     clientRecoveryRequest,
@@ -48,6 +49,7 @@ router.post("/login", validateLogin, unifiedLogin);
 router.post("/logout", validateLogout, logout);
 router.post("/recovery/request", validateRecoveryRequest, clientRecoveryRequest);
 router.post("/recovery/reset", validateRecoveryReset, clientRecoveryReset);
+router.post("/verify-email", verifyEmail);
 
 // Target routes requested by prompt specifications exactly
 router.post("/register", validateClientRegister, clientRegister);

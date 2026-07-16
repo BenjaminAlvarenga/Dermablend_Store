@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Reviews from "../models/reviews.js";
 import Clients from "../models/clients.js";
 import Products from "../models/products.js";
+import Orders from "../models/orders.js";
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -85,6 +86,27 @@ export const createReview = async (req, res, next) => {
             });
         }
 
+        // A Client can only review as themselves
+        if (req.user.role === "Client" && req.user.id.toString() !== client_id) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only submit reviews for yourself"
+            });
+        }
+
+        // Only clients who actually received an order containing this product may review it
+        const hasPurchased = await Orders.exists({
+            client_id,
+            status: "Entregado",
+            "products.product_id": product_id
+        });
+        if (!hasPurchased) {
+            return res.status(403).json({
+                success: false,
+                message: "You can only review products from orders that have been delivered to you"
+            });
+        }
+
         // Rating boundaries check
         const numRating = Number(rating);
         if (isNaN(numRating) || numRating < 1 || numRating > 5) {
@@ -147,6 +169,13 @@ export const updateReview = async (req, res, next) => {
             return res.status(404).json({
                 success: false,
                 message: "Review not found"
+            });
+        }
+
+        if (!["Admin", "Employee"].includes(req.user.role) && review.client_id.toString() !== req.user.id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only edit your own reviews"
             });
         }
 
@@ -231,13 +260,22 @@ export const deleteReview = async (req, res, next) => {
             });
         }
 
-        const review = await Reviews.findByIdAndDelete(id);
+        const review = await Reviews.findById(id);
         if (!review) {
             return res.status(404).json({
                 success: false,
                 message: "Review not found"
             });
         }
+
+        if (!["Admin", "Employee"].includes(req.user.role) && review.client_id.toString() !== req.user.id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only delete your own reviews"
+            });
+        }
+
+        await Reviews.findByIdAndDelete(id);
 
         return res.status(200).json({
             success: true,

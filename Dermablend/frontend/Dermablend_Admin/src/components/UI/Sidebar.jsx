@@ -1,7 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
-  FiPackage,
   FiUsers,
   FiBox,
   FiUser,
@@ -10,6 +9,7 @@ import {
   FiSmile,
   FiLogOut
 } from "react-icons/fi";
+import AuthService from "../../services/Auth";
 
 const links = [
   { to: "/home", label: "Homepage", icon: FiHome },
@@ -24,7 +24,12 @@ const links = [
 const Sidebar = ({ open = false, onClose = () => {} }) => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.log("Error al cerrar sesión:", error);
+    }
     localStorage.removeItem("fakestore_token");
     localStorage.removeItem("fakestore_user");
     localStorage.removeItem("fakestore_email");

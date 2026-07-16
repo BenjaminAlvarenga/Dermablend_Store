@@ -74,13 +74,17 @@ const DataTestEmployee = ({ id, register, errors, onSubmit, onCancel }) => {
           <label htmlFor="role" className="block text-sm font-medium text-gray-700">
             Rol
           </label>
-          <input
-            type="text"
+          <select
             id="role"
-            {...register("role")}
+            {...register("role", { required: "El rol es obligatorio" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="Ingresa el rol"
-          />
+          >
+            <option value="Employee">Employee</option>
+            <option value="Admin">Admin</option>
+          </select>
+          {errors?.role ? (
+            <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -90,9 +94,12 @@ const DataTestEmployee = ({ id, register, errors, onSubmit, onCancel }) => {
           <input
             type="date"
             id="hire_date"
-            {...register("hire_date")}
+            {...register("hire_date", { required: "La fecha de contratación es obligatoria" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
+          {errors?.hire_date ? (
+            <p className="mt-1 text-sm text-red-600">{errors.hire_date.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -103,10 +110,13 @@ const DataTestEmployee = ({ id, register, errors, onSubmit, onCancel }) => {
             type="number"
             step="0.01"
             id="salary"
-            {...register("salary")}
+            {...register("salary", { required: "El salario es obligatorio", min: { value: 0.01, message: "El salario debe ser mayor a 0" } })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Ingresa el salario"
           />
+          {errors?.salary ? (
+            <p className="mt-1 text-sm text-red-600">{errors.salary.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -118,8 +128,8 @@ const DataTestEmployee = ({ id, register, errors, onSubmit, onCancel }) => {
             {...register("status")}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
+            <option value="active">Activo</option>
+            <option value="inactive">Inactivo</option>
           </select>
         </div>
 

@@ -6,7 +6,7 @@ import {
     updateClient,
     deleteClient
 } from "../controller/clientsController.js";
-import { authMiddleware, roleMiddleware } from "../middlewares/authMiddleware.js";
+import { authMiddleware, roleMiddleware, selfOrRoles } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
@@ -14,13 +14,13 @@ const router = Router();
 router.get("/", authMiddleware, roleMiddleware(["Admin", "Employee"]), getAllClients);
 
 // Retrieve client by ID - Admin, Employee, or the Client themselves
-router.get("/:id", authMiddleware, getClientById);
+router.get("/:id", authMiddleware, selfOrRoles(["Admin", "Employee"]), getClientById);
 
 // Create new client (e.g. signup) - Public
 router.post("/", createClient);
 
 // Update client - Admin or Client themselves
-router.put("/:id", authMiddleware, updateClient);
+router.put("/:id", authMiddleware, selfOrRoles(["Admin", "Employee"]), updateClient);
 
 // Delete client - Admin only
 router.delete("/:id", authMiddleware, roleMiddleware(["Admin"]), deleteClient);

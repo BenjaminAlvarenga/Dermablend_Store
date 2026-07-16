@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import ReviewsService from "../../services/Reviews";
+import { confirmToast } from "../../utils/confirmToast";
 
 const useDataReviews = (methods) => {
   const [dataReviews, setDataReviews] = useState([]);
   const { id } = useParams();
+  const hasFetched = useRef(false);
 
   const {
     register,
@@ -19,7 +21,7 @@ const useDataReviews = (methods) => {
   const getReviews = async () => {
     try {
       const data = await ReviewsService.get();
-      setDataReviews(data);
+      setDataReviews(data.data || []);
     } catch (error) {
       console.log("Error al obtener las reseñas:", error);
       toast.error("Error al obtener las reseñas");
@@ -28,7 +30,8 @@ const useDataReviews = (methods) => {
 
   const getReviewById = async (id) => {
     try {
-      return await ReviewsService.getById(id);
+      const response = await ReviewsService.getById(id);
+      return response.data;
     } catch (error) {
       console.log("Error al obtener la reseña:", error);
       toast.error("Error al obtener la reseña");
@@ -64,6 +67,9 @@ const useDataReviews = (methods) => {
   };
 
   const deleteReview = async (id) => {
+    const confirmed = await confirmToast("¿Seguro que deseas eliminar esta reseña?");
+    if (!confirmed) return;
+
     try {
       await ReviewsService.delete(id);
       toast.success("Reseña eliminada correctamente");
@@ -103,6 +109,8 @@ const useDataReviews = (methods) => {
   }
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     getReviews();
   }, []);
 

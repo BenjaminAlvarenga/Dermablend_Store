@@ -1,44 +1,22 @@
-// Login.jsx contiene la pantalla de inicio de sesión.
-// Para este ejemplo se usa un usuario fijo en memoria y se crea un token falso.
+// VerifyCode.jsx recibe el código enviado por correo y la nueva contraseña,
+// y llama al backend para completar el restablecimiento en un solo paso.
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../img/Dermablend.png";
-
-// Lista de usuarios válidos usados solo para la demo del login.
-// Esta lista no viene de ninguna API; es solo un conjunto de credenciales locales.
-const users = [
-  {
-    id: 1,
-    email: "john@gmail.com",
-    username: "johnd",
-    password: "12345",
-  },
-  {
-    id: 2,
-    email: "morrison@gmail.com",
-    username: "mor_2314",
-    password: "12345",
-  },
-  {
-    id: 3,
-    email: "kevin@gmail.com",
-    username: "kevinryan",
-    password: "12345",
-  },
-];
+import AuthService from "../services/Auth";
 
 const VerifyCode = () => {
-  // Estados para controlar los campos del formulario y su comportamiento.
-  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email;
 
   useEffect(() => {
-    // Si ya existe un token, el usuario ya está autenticado.
-    // Entonces redirige directamente a la página de inicio.
     const token =
       localStorage.getItem("fakestore_token") ||
       sessionStorage.getItem("fakestore_token");
@@ -51,13 +29,34 @@ const VerifyCode = () => {
     event.preventDefault();
     setError("");
 
-    // Validación simple de los campos antes de continuar.
     if (!code.trim()) {
-      setError("Código incorrecto");
+      setError("Por favor ingresa el código que recibiste por correo.");
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      setError("La nueva contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
       return;
     }
 
     setLoading(true);
+
+    try {
+      await AuthService.resetPassword(code.trim(), newPassword);
+      setSuccess("Contraseña restablecida correctamente. Redirigiendo...");
+      setTimeout(() => navigate("/"), 2000);
+    } catch (error_) {
+      setError(
+        error_.message || "El código es inválido o ha expirado. Intenta nuevamente.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,6 +70,7 @@ const VerifyCode = () => {
           <div>
             <label className="block text-sm font-medium text-slate-700 flex align-center justify-center">
               Introduce el código que te hemos enviado hacia tu correo electrónico
+              {email ? ` (${email})` : ""}
             </label>
           </div>
 
@@ -81,7 +81,37 @@ const VerifyCode = () => {
               </label>
               <input
                 type="text"
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
                 placeholder="XXXXXX"
+                className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80]/70 px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-[#D3AB80]/50"
+                required
+              />
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Nueva contraseña
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80]/70 px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-[#D3AB80]/50"
+                required
+              />
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Confirmar contraseña
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                placeholder="Repite la contraseña"
                 className="w-full rounded-2xl border border-slate-200 bg-[#D3AB80]/70 px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-indigo-500 focus:bg-[#D3AB80]/50"
                 required
               />
@@ -97,12 +127,22 @@ const VerifyCode = () => {
               </div>
             )}
 
+            {success && (
+              <div
+                className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
+                role="status"
+                aria-live="polite"
+              >
+                {success}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
               className="flex w-full items-center justify-center rounded-2xl bg-[#472825]/80 px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#472825]/65 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              <p>Confirmar código</p>
+              <p>{loading ? "Restableciendo..." : "Restablecer contraseña"}</p>
             </button>
           </form>
         </div>

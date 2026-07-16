@@ -85,3 +85,27 @@ export const roleMiddleware = (allowedRoles = []) => {
         next();
     };
 };
+
+// Allow access if the user has one of the given roles OR is the owner of the resource (req.params[paramName] === req.user.id)
+export const selfOrRoles = (allowedRoles = [], paramName = "id") => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: No user attached to request"
+            });
+        }
+
+        const isOwner = req.user.id.toString() === req.params[paramName];
+        const hasRole = allowedRoles.includes(req.user.role);
+
+        if (!isOwner && !hasRole) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only access your own resource"
+            });
+        }
+
+        next();
+    };
+};

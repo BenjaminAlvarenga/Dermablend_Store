@@ -1,4 +1,20 @@
-const DataTestOrders = ({ id, register, errors, onSubmit, onCancel }) => {
+import { useEffect, useState } from "react";
+import { useFieldArray } from "react-hook-form";
+import ProductsService from "../../services/Products";
+
+const DataTestOrders = ({ id, register, errors, control, onSubmit, onCancel }) => {
+  const [products, setProducts] = useState([]);
+  const { fields, append, remove } = useFieldArray({ control, name: "products" });
+
+  useEffect(() => {
+    ProductsService.get()
+      .then((response) => setProducts(response.data || []))
+      .catch(() => setProducts([]));
+  }, []);
+
+  const productName = (productId) =>
+    products.find((p) => p._id === productId)?.name || productId;
+
   return (
     <section className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
       <div className="flex items-start justify-between gap-4 mb-6">
@@ -37,21 +53,90 @@ const DataTestOrders = ({ id, register, errors, onSubmit, onCancel }) => {
         </div>
 
         <div>
-          <label htmlFor="total_amount" className="block text-sm font-medium text-gray-700">
-            Total
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            id="total_amount"
-            {...register("total_amount", { required: "El total es obligatorio" })}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="Ingresa el total"
-          />
-          {errors?.total_amount ? (
-            <p className="mt-1 text-sm text-red-600">{errors.total_amount.message}</p>
-          ) : null}
+          <span className="block text-sm font-medium text-gray-700">Productos</span>
+
+          {id ? (
+            // El backend no permite editar la lista de productos de una orden existente,
+            // solo estado/pago/dirección. Se muestra en modo lectura.
+            <ul className="mt-1 space-y-1 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+              {fields.map((field) => (
+                <li key={field.id}>
+                  {productName(field.product_id)} — cantidad: {field.quantity}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-1 space-y-2">
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-2">
+                  <select
+                    {...register(`products.${index}.product_id`, {
+                      required: "Selecciona un producto",
+                    })}
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">Selecciona un producto</option>
+                    {products.map((p) => (
+                      <option key={p._id} value={p._id}>
+                        {p.name} (stock: {p.stock})
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min="1"
+                    {...register(`products.${index}.quantity`, {
+                      required: "Cantidad requerida",
+                      min: { value: 1, message: "Mínimo 1" },
+                      valueAsNumber: true,
+                    })}
+                    className="w-24 rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Cant."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => append({ product_id: "", quantity: 1 })}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                + Agregar producto
+              </button>
+
+              {errors?.products ? (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.products.message || "Agrega al menos un producto"}
+                </p>
+              ) : null}
+            </div>
+          )}
         </div>
+
+        {id ? (
+          <div>
+            <label htmlFor="total_amount" className="block text-sm font-medium text-gray-700">
+              Total
+            </label>
+            <input
+              type="text"
+              id="total_amount"
+              readOnly
+              {...register("total_amount")}
+              className="mt-1 block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-600 shadow-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              El total se calcula automáticamente a partir de los productos y no puede editarse aquí.
+            </p>
+          </div>
+        ) : null}
 
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-gray-700">

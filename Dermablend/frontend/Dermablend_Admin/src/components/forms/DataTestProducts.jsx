@@ -95,10 +95,13 @@ const DataTestProducts = ({ id, register, errors, onSubmit, onCancel }) => {
           <input
             type="text"
             id="shade"
-            {...register("shade")}
+            {...register("shade", { required: "El tono es obligatorio" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Ingresa el tono"
           />
+          {errors?.shade ? (
+            <p className="mt-1 text-sm text-red-600">{errors.shade.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -108,10 +111,46 @@ const DataTestProducts = ({ id, register, errors, onSubmit, onCancel }) => {
           <input
             type="text"
             id="coverage_level"
-            {...register("coverage_level")}
+            {...register("coverage_level", { required: "El nivel de cobertura es obligatorio" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Ingresa el nivel de cobertura"
           />
+          {errors?.coverage_level ? (
+            <p className="mt-1 text-sm text-red-600">{errors.coverage_level.message}</p>
+          ) : null}
+        </div>
+
+        <div>
+          <span className="block text-sm font-medium text-gray-700">Tipos de piel compatibles</span>
+          <div className="mt-1 flex gap-4">
+            <label className="flex items-center gap-1 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                value="grasa"
+                {...register("skin_type_compatible", { required: "Selecciona al menos un tipo de piel" })}
+              />
+              Grasa
+            </label>
+            <label className="flex items-center gap-1 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                value="seca"
+                {...register("skin_type_compatible", { required: "Selecciona al menos un tipo de piel" })}
+              />
+              Seca
+            </label>
+            <label className="flex items-center gap-1 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                value="mixta"
+                {...register("skin_type_compatible", { required: "Selecciona al menos un tipo de piel" })}
+              />
+              Mixta
+            </label>
+          </div>
+          {errors?.skin_type_compatible ? (
+            <p className="mt-1 text-sm text-red-600">{errors.skin_type_compatible.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -120,11 +159,14 @@ const DataTestProducts = ({ id, register, errors, onSubmit, onCancel }) => {
           </label>
           <textarea
             id="description"
-            {...register("description")}
+            {...register("description", { required: "La descripción es obligatoria" })}
             rows={3}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Describe el producto"
           />
+          {errors?.description ? (
+            <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+          ) : null}
         </div>
 
         <div>
@@ -134,10 +176,13 @@ const DataTestProducts = ({ id, register, errors, onSubmit, onCancel }) => {
           <input
             type="text"
             id="image"
-            {...register("image")}
+            {...register("image", { required: "La imagen es obligatoria" })}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Ingresa la URL de la imagen"
           />
+          {errors?.image ? (
+            <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-2">

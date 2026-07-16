@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import { API_BASE_URL } from "../App.jsx";
 
 function ProductDetail({
@@ -22,6 +23,8 @@ function ProductDetail({
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [canReview, setCanReview] = useState(false);
+  const [checkingPurchase, setCheckingPurchase] = useState(false);
 
   useEffect(() => {
     if (!productId) return;
@@ -59,6 +62,34 @@ function ProductDetail({
       .catch((err) => console.error("Error loading reviews:", err))
       .finally(() => setLoading(false));
   }, [productId]);
+
+  // Only clients with a delivered order containing this product may review it
+  useEffect(() => {
+    if (!user || !productId || !token) {
+      setCanReview(false);
+      return;
+    }
+
+    setCheckingPurchase(true);
+    const clientId = user._id || user.id;
+
+    fetch(`${API_BASE_URL}/orders?client_id=${clientId}&status=Entregado`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const deliveredOrders = data.data || [];
+        const purchased = deliveredOrders.some((order) =>
+          order.products.some((p) => (p.product_id?._id || p.product_id) === productId)
+        );
+        setCanReview(purchased);
+      })
+      .catch((err) => {
+        console.error("Error checking purchase history:", err);
+        setCanReview(false);
+      })
+      .finally(() => setCheckingPurchase(false));
+  }, [user, productId, token]);
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -106,8 +137,11 @@ function ProductDetail({
       ]);
       setNewComment("");
       setNewRating(5);
+      toast.success("¡Reseña publicada correctamente!");
     } catch (err) {
-      setReviewError(err.message || "Error al publicar la reseña.");
+      const message = err.message || "Error al publicar la reseña.";
+      setReviewError(message);
+      toast.error(message);
     } finally {
       setSubmittingReview(false);
     }
@@ -282,7 +316,22 @@ function ProductDetail({
             <h3 className="review-form-title">Escribir una Reseña</h3>
             {reviewError && <div className="alert alert-error">{reviewError}</div>}
             
-            {user ? (
+            {!user ? (
+              <div className="review-form-login-prompt">
+                <p>Debes iniciar sesión para publicar una reseña de producto.</p>
+                <button className="btn btn-secondary" onClick={() => openAuth("login")}>
+                  Iniciar Sesión
+                </button>
+              </div>
+            ) : checkingPurchase ? (
+              <div className="review-form-login-prompt">
+                <p>Verificando tu historial de compras...</p>
+              </div>
+            ) : !canReview ? (
+              <div className="review-form-login-prompt">
+                <p>Solo puedes reseñar productos que ya hayas comprado y recibido.</p>
+              </div>
+            ) : (
               <form onSubmit={handleReviewSubmit} className="review-form-box">
                 <div className="form-group">
                   <label className="form-label">Calificación</label>
@@ -314,13 +363,6 @@ function ProductDetail({
                   {submittingReview ? "Publicando..." : "Publicar Reseña"}
                 </button>
               </form>
-            ) : (
-              <div className="review-form-login-prompt">
-                <p>Debes iniciar sesión para publicar una reseña de producto.</p>
-                <button className="btn btn-secondary" onClick={() => openAuth("login")}>
-                  Iniciar Sesión
-                </button>
-              </div>
             )}
           </div>
         </div>

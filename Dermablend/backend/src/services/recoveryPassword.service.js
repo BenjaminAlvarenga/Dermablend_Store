@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import Clients from "../models/clients.js";
 import Employees from "../models/employees.js";
-import { sendRecoveryEmail } from "./mailService.js";
+import { sendRecoveryEmail, sendRecoveryCodeEmail } from "./mailService.js";
 
 const RecoveryPasswordService = {
     /**
@@ -10,17 +10,18 @@ const RecoveryPasswordService = {
     requestRecovery: async (email) => {
         const cleanEmail = String(email).trim().toLowerCase();
 
-        // 1. Try Employee first
+        // 1. Try Employee first — employees get a short 6-digit code (Admin panel UX)
+        // instead of a clickable link, since the Admin has its own "enter code" screen.
         const employee = await Employees.findOne({ email: cleanEmail });
         if (employee) {
             if (employee.status === "active") {
-                const token = crypto.randomBytes(32).toString("hex");
-                employee.recovery_token = token;
+                const code = crypto.randomInt(100000, 1000000).toString();
+                employee.recovery_token = code;
                 employee.recovery_token_expires = Date.now() + 3600000; // 1 hour
                 await employee.save();
-                await sendRecoveryEmail(cleanEmail, token);
+                await sendRecoveryCodeEmail(cleanEmail, code);
             }
-            return { message: "Si la cuenta está registrada, se ha enviado un correo con instrucciones de recuperación" };
+            return { message: "Si la cuenta está registrada, se ha enviado un correo con un código de recuperación" };
         }
 
         // 2. Try Client next

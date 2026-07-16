@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { API_BASE_URL } from "../App.jsx";
 
 function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
@@ -54,15 +55,16 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
       }
 
       setSuccess("¡Bienvenido de vuelta!");
+      toast.success("¡Bienvenido de vuelta!");
       setTimeout(() => {
         onLogin(data.user, data.token);
       }, 800);
     } catch (err) {
-      if (err.name === "TypeError" && err.message.includes("fetch")) {
-        setError("Error de conexión: No se pudo establecer contacto con el servidor de Dermablend. Verifica tu conexión a internet.");
-      } else {
-        setError(err.message || "Error al iniciar sesión.");
-      }
+      const message = err.name === "TypeError" && err.message.includes("fetch")
+        ? "Error de conexión: No se pudo establecer contacto con el servidor de Dermablend. Verifica tu conexión a internet."
+        : (err.message || "Error al iniciar sesión.");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -101,12 +103,15 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
         throw new Error(data.message || "Error en el registro.");
       }
 
-      setSuccess("¡Registro exitoso! Iniciando sesión...");
+      setSuccess("¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.");
+      toast.success("¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.");
       setTimeout(() => {
         onLogin(data.user, data.token);
       }, 1000);
     } catch (err) {
-      setError(err.message || "Error al registrarse.");
+      const message = err.message || "Error al registrarse.";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -136,13 +141,17 @@ function AuthModal({ activeTab, setActiveTab, onClose, onLogin }) {
         throw new Error(data.message || "Error al solicitar recuperación.");
       }
 
-      setSuccess(data.message || "Enlace de recuperación enviado. Revisa tu correo.");
+      const successMessage = data.message || "Enlace de recuperación enviado. Revisa tu correo.";
+      setSuccess(successMessage);
+      toast.success(successMessage);
       setTimeout(() => {
         setActiveTab("login");
         setRecoveryEmail("");
       }, 3000);
     } catch (err) {
-      setError(err.message || "Error al enviar la solicitud de recuperación.");
+      const message = err.message || "Error al enviar la solicitud de recuperación.";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

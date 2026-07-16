@@ -60,6 +60,14 @@ const clientSchema = new Schema(
         recovery_token_expires: {
             type: Date,
             default: null
+        },
+        verification_token: {
+            type: String,
+            default: null
+        },
+        verification_token_expires: {
+            type: Date,
+            default: null
         }
     },
     {

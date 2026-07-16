@@ -139,21 +139,27 @@ export const updateEmployee = async (req, res, next) => {
 
         if (name && name.trim()) employee.name = name;
         if (password) employee.password = password; // pre-save will hash
-        if (role) employee.role = role;
-        if (hire_date) employee.hire_date = hire_date;
-        if (status) employee.status = status;
         if (image !== undefined) employee.image = image;
         if (public_id !== undefined) employee.public_id = public_id;
 
-        if (salary !== undefined && salary !== null) {
-            if (isNaN(salary) || salary <= 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Salary must be greater than 0"
-                });
+        // Only Admins can change role, status or salary (prevents self-escalation
+        // when an employee updates their own record via selfOrRoles)
+        if (req.user.role === "Admin") {
+            if (role) employee.role = role;
+            if (status) employee.status = status;
+
+            if (salary !== undefined && salary !== null) {
+                if (isNaN(salary) || salary <= 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Salary must be greater than 0"
+                    });
+                }
+                employee.salary = Number(salary);
             }
-            employee.salary = Number(salary);
         }
+
+        if (hire_date) employee.hire_date = hire_date;
 
         await employee.save();
 

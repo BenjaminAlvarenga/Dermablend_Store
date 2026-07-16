@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import CustomizationsService from "../../services/Customizations";
+import { confirmToast } from "../../utils/confirmToast";
 
 const useDataCustomizations = (methods) => {
   const [dataCustomizations, setDataCustomizations] = useState([]);
   const { id } = useParams();
+  const hasFetched = useRef(false);
 
   const {
     register,
@@ -64,6 +66,9 @@ const useDataCustomizations = (methods) => {
   };
 
   const deleteCustomization = async (id) => {
+    const confirmed = await confirmToast("¿Seguro que deseas eliminar esta personalización?");
+    if (!confirmed) return;
+
     try {
       await CustomizationsService.delete(id);
       toast.success("Personalización eliminada correctamente");
@@ -103,6 +108,8 @@ const useDataCustomizations = (methods) => {
   }
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     getCustomizations();
   }, []);
 

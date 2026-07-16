@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import { API_BASE_URL } from "../App.jsx";
 
 function Profile({ user, token, handleLogout, navigateTo }) {
   const [orders, setOrders] = useState([]);
+  const [ordersError, setOrdersError] = useState("");
   const [customizations, setCustomizations] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingCustoms, setLoadingCustoms] = useState(true);
@@ -17,14 +19,18 @@ function Profile({ user, token, handleLogout, navigateTo }) {
     fetch(`${API_BASE_URL}/orders?client_id=${clientId}`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          // Sort by date newest first
-          setOrders(data.data.sort((a, b) => new Date(b.order_date) - new Date(a.order_date)));
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "No se pudo cargar tu historial de pedidos.");
         }
+        // Sort by date newest first
+        setOrders((data.data || []).sort((a, b) => new Date(b.order_date) - new Date(a.order_date)));
       })
-      .catch((err) => console.error("Error loading client orders:", err))
+      .catch((err) => {
+        console.error("Error loading client orders:", err);
+        setOrdersError(err.message || "No se pudo cargar tu historial de pedidos.");
+      })
       .finally(() => setLoadingOrders(false));
 
     // Fetch client customizations
@@ -64,9 +70,9 @@ function Profile({ user, token, handleLogout, navigateTo }) {
       setOrders((prev) =>
         prev.map((o) => (o._id === orderId ? { ...o, status: "Cancelado" } : o))
       );
-      alert("Pedido cancelado correctamente.");
+      toast.success("Pedido cancelado correctamente.");
     } catch (err) {
-      alert(err.message || "Error al procesar cancelación.");
+      toast.error(err.message || "Error al procesar cancelación.");
     }
   };
 
@@ -153,6 +159,10 @@ function Profile({ user, token, handleLogout, navigateTo }) {
                   {[1, 2].map((n) => (
                     <div key={n} className="skeleton skeleton-item" style={{ height: "100px", marginBottom: "16px" }}></div>
                   ))}
+                </div>
+              ) : ordersError ? (
+                <div className="empty-tab-state">
+                  <p>{ordersError}</p>
                 </div>
               ) : orders.length === 0 ? (
                 <div className="empty-tab-state">

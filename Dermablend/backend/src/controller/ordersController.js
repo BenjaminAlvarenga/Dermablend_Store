@@ -8,9 +8,14 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 export const getAllOrders = async (req, res, next) => {
     try {
         const query = {};
-        if (req.query.client_id && isValidObjectId(req.query.client_id)) {
+
+        if (req.user.role === "Client") {
+            // Clients can only ever see their own orders, regardless of query params
+            query.client_id = req.user.id;
+        } else if (req.query.client_id && isValidObjectId(req.query.client_id)) {
             query.client_id = req.query.client_id;
         }
+
         if (req.query.status) {
             query.status = req.query.status;
         }
@@ -50,6 +55,13 @@ export const getOrderById = async (req, res, next) => {
             });
         }
 
+        if (req.user.role === "Client" && order.client_id._id.toString() !== req.user.id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only access your own orders"
+            });
+        }
+
         return res.status(200).json({
             success: true,
             data: order
@@ -62,13 +74,13 @@ export const getOrderById = async (req, res, next) => {
 export const createOrder = async (req, res, next) => {
     // We use a transaction or session if possible, but standard mongoose is safe enough since we do sequential checks
     try {
-        const { client_id, products, total_amount, payment_method, shipping_address } = req.body;
+        const { client_id, products, payment_method, shipping_address } = req.body;
 
         // Validations
-        if (!client_id || !products || total_amount === undefined || total_amount === null || !payment_method || !shipping_address || !shipping_address.trim()) {
+        if (!client_id || !products || !payment_method || !shipping_address || !shipping_address.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "client_id, products, total_amount, payment_method, and shipping_address are all required"
+                message: "client_id, products, payment_method, and shipping_address are all required"
             });
         }
 
@@ -76,6 +88,14 @@ export const createOrder = async (req, res, next) => {
             return res.status(400).json({
                 success: false,
                 message: "Invalid client_id format"
+            });
+        }
+
+        // Clients can only place orders for themselves; Admin/Employee can create for any client
+        if (req.user.role === "Client" && req.user.id.toString() !== client_id) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: You can only create orders for yourself"
             });
         }
 
@@ -88,6 +108,14 @@ export const createOrder = async (req, res, next) => {
             });
         }
 
+        // A client must confirm their email before they can check out
+        if (!clientExists.is_verified) {
+            return res.status(403).json({
+                success: false,
+                message: "Debes verificar tu correo electrónico antes de poder realizar una compra"
+            });
+        }
+
         if (!Array.isArray(products) || products.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -95,24 +123,18 @@ export const createOrder = async (req, res, next) => {
             });
         }
 
-        if (Number(total_amount) <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: "total_amount must be greater than 0"
-            });
-        }
-
-        // Check products existence, stock, and calculate/validate total amount
+        // Check products existence and stock; price/total are always sourced from the
+        // database, never trusted from the client, to prevent tampering
         const verifiedProducts = [];
         let calculatedTotal = 0;
 
         for (const item of products) {
-            const { product_id, quantity, price } = item;
+            const { product_id, quantity } = item;
 
-            if (!product_id || !isValidObjectId(product_id) || quantity === undefined || price === undefined) {
+            if (!product_id || !isValidObjectId(product_id) || !quantity || Number(quantity) <= 0) {
                 return res.status(400).json({
                     success: false,
-                    message: "Each product in list must have valid product_id, quantity, and price"
+                    message: "Each product in list must have a valid product_id and a positive quantity"
                 });
             }
 
@@ -132,11 +154,11 @@ export const createOrder = async (req, res, next) => {
                 });
             }
 
-            calculatedTotal += Number(price) * Number(quantity);
+            calculatedTotal += dbProduct.price * Number(quantity);
             verifiedProducts.push({
                 product: dbProduct,
                 quantity: Number(quantity),
-                price: Number(price)
+                price: dbProduct.price
             });
         }
 
@@ -148,12 +170,12 @@ export const createOrder = async (req, res, next) => {
 
         const order = new Orders({
             client_id,
-            products: products.map(p => ({
-                product_id: p.product_id,
-                quantity: Number(p.quantity),
-                price: Number(p.price)
+            products: verifiedProducts.map(p => ({
+                product_id: p.product._id,
+                quantity: p.quantity,
+                price: p.price
             })),
-            total_amount: Number(total_amount),
+            total_amount: calculatedTotal,
             payment_method,
             shipping_address: shipping_address.trim(),
             status: "Pendiente"
@@ -188,6 +210,30 @@ export const updateOrder = async (req, res, next) => {
                 success: false,
                 message: "Order not found"
             });
+        }
+
+        if (req.user.role === "Client") {
+            if (order.client_id.toString() !== req.user.id.toString()) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden: You can only modify your own orders"
+                });
+            }
+
+            // Clients may only cancel their own still-pending order; no other field may change
+            if (status !== "Cancelado" || shipping_address || payment_method) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden: You can only cancel a pending order"
+                });
+            }
+
+            if (order.status !== "Pendiente") {
+                return res.status(400).json({
+                    success: false,
+                    message: "Only pending orders can be cancelled"
+                });
+            }
         }
 
         if (shipping_address && shipping_address.trim()) {

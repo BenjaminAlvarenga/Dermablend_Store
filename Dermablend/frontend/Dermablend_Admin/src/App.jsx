@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Clients from "./pages/Clients";
@@ -13,6 +14,7 @@ import Layout from "../src/layout/NavLayout"
 function App() {
   return (
     <>
+      <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
       <Router>
         <Routes>
           {/* Sin layout (login, recuperación) */}

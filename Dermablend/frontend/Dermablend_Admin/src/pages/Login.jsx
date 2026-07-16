@@ -1,31 +1,9 @@
 // Login.jsx contiene la pantalla de inicio de sesión.
-// Para este ejemplo se usa un usuario fijo en memoria y se crea un token falso.
+// Autentica contra el backend real (POST /api/auth/login).
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../img/Dermablend.png";
-
-// Lista de usuarios válidos usados solo para la demo del login.
-// Esta lista no viene de ninguna API; es solo un conjunto de credenciales locales.
-const users = [
-  {
-    id: 1,
-    email: "john@gmail.com",
-    username: "johnd",
-    password: "12345",
-  },
-  {
-    id: 2,
-    email: "morrison@gmail.com",
-    username: "mor_2314",
-    password: "12345",
-  },
-  {
-    id: 3,
-    email: "kevin@gmail.com",
-    username: "kevinryan",
-    password: "12345",
-  },
-];
+import AuthService from "../services/Auth";
 
 const Login = () => {
   // Estados para controlar los campos del formulario y su comportamiento.
@@ -60,23 +38,14 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Busca en la lista local de usuarios el email y contraseña ingresados.
-      const user = users.find(
-        (item) =>
-          item.email.toLowerCase() === email.trim().toLowerCase() &&
-          item.password === password,
+      const { token, user } = await AuthService.login(
+        email.trim().toLowerCase(),
+        password,
       );
 
-      if (!user) {
-        // Si no existe, se lanza un error y se muestra al usuario.
-        throw new Error("Email o contraseña incorrectos.");
-      }
-
-      // Se genera un token falso para simular autenticación.
-      const token = `token-${user.id}-${Date.now()}`;
       const storage = rememberMe ? localStorage : sessionStorage;
       storage.setItem("fakestore_token", token);
-      storage.setItem("fakestore_user", user.username);
+      storage.setItem("fakestore_user", user.name);
       storage.setItem("fakestore_email", user.email);
 
       // Redirige a la página de inicio luego de iniciar sesión.
