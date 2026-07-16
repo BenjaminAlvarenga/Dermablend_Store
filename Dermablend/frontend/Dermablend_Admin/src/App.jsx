@@ -1,5 +1,5 @@
+import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Clients from "./pages/Clients";
@@ -9,12 +9,12 @@ import Reviews from "./pages/Reviews";
 import Products from "./pages/Products";
 import RecoveryPassword from "./pages/PasswordRecovery";
 import VerifyCode from "./pages/VerifyCode";
-import Layout from "../src/layout/NavLayout"
+import ProfilePage from "./pages/ProfilePage";
+import Layout from "../src/layout/NavLayout";
 
 function App() {
   return (
     <>
-      <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
       <Router>
         <Routes>
           {/* Sin layout (login, recuperación) */}
@@ -26,15 +26,11 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/home" element={<Home />} />
             <Route path="/clients" element={<Clients />} />
-            <Route path="/clients/:id" element={<Clients />} />
             <Route path="/employees" element={<Employees />} />
-            <Route path="/employees/:id" element={<Employees />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/orders/:id" element={<Orders />} />
             <Route path="/reviews" element={<Reviews />} />
-            <Route path="/reviews/:id" element={<Reviews />} />
             <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<Products />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Routes>
       </Router>
