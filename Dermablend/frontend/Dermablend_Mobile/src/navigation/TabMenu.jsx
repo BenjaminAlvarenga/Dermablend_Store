@@ -10,7 +10,7 @@ const Drawer = createDrawerNavigator();
 export default function TabMenu() {
   return (
     <Drawer.Navigator
-      initialRouteName="Products"
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         drawerType: 'slide',

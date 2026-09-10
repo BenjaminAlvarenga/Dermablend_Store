@@ -1,7 +1,9 @@
 import mongoose from "mongoose"
 import { config } from "./src/config.js";
 
-mongoose.connect(config.db.URI)
+mongoose.connect(config.db.URI).catch((error) => {
+    console.log("Could not connect to the database: " + error.message)
+})
 
 //Comprobar que todo funciona
 const connection = mongoose.connection;

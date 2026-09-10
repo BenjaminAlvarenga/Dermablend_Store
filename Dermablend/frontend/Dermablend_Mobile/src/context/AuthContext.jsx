@@ -13,6 +13,7 @@ const AUTH_STORAGE_KEY = "dermablend:auth-session";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [isBooting, setIsBooting] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -21,10 +22,12 @@ export function AuthProvider({ children }) {
     try {
       const raw = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       if (raw) {
-        setUser(JSON.parse(raw));
+        const session = JSON.parse(raw);
+        setUser(session.user);
+        setToken(session.token);
       }
     } catch (error) {
-      console.log("Error al cargar sesión de LioSnack:", error);
+      console.log("Error al cargar sesión de Dermablend:", error);
     } finally {
       setIsBooting(false);
     }
@@ -34,56 +37,60 @@ export function AuthProvider({ children }) {
     initializeSession();
   }, [initializeSession]);
 
-  const register = useCallback(async ({ name, lastName, email, password }) => {
-    setLoading(true);
-    try {
-      const data = await authService.register({ name, lastName, email, password });
-      return { ok: true, message: data?.message || "Código enviado a tu correo." };
-    } catch (error) {
-      return { ok: false, message: error.message };
-    } finally {
-      setLoading(false);
-    }
+  const persistSession = useCallback(async (sessionUser, sessionToken) => {
+    setUser(sessionUser);
+    setToken(sessionToken);
+    await AsyncStorage.setItem(
+      AUTH_STORAGE_KEY,
+      JSON.stringify({ user: sessionUser, token: sessionToken })
+    );
   }, []);
 
-  const verifyCode = useCallback(async ({ email, code }) => {
-    setLoading(true);
-    try {
-      const data = await authService.verifyCode({ email, code });
-      return { ok: true, message: data?.message || "Cuenta verificada con éxito." };
-    } catch (error) {
-      return { ok: false, message: error.message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const login = useCallback(
+    async ({ email, password }) => {
+      setLoading(true);
+      try {
+        const data = await authService.login({ email, password });
+        await persistSession(data.user, data.token);
+        return { ok: true, message: data?.message || "Bienvenido", user: data.user };
+      } catch (error) {
+        return { ok: false, message: error.message };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [persistSession]
+  );
 
-  const resendCode = useCallback(async (email) => {
-    try {
-      const data = await authService.resendCode(email);
-      return { ok: true, message: data?.message || "Código reenviado." };
-    } catch (error) {
-      return { ok: false, message: error.message };
-    }
-  }, []);
-
-  const login = useCallback(async ({ email, password }) => {
-    setLoading(true);
-    try {
-      const data = await authService.login({ email, password });
-      const sessionUser = data.user || { email: email.trim().toLowerCase(), name: "Cliente" };
-      setUser(sessionUser);
-      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionUser));
-      return { ok: true, message: data?.message || "Bienvenido", user: sessionUser };
-    } catch (error) {
-      return { ok: false, message: error.message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // El backend crea la cuenta como activa de inmediato, así que el registro
+  // también inicia sesión (igual que en Dermablend_Public).
+  const register = useCallback(
+    async ({ name, email, password, birthdate, phone, skin_type, skin_tone }) => {
+      setLoading(true);
+      try {
+        const data = await authService.register({
+          name,
+          email,
+          password,
+          birthdate,
+          phone,
+          skin_type,
+          skin_tone,
+        });
+        await persistSession(data.user, data.token);
+        return { ok: true, message: data?.message || "Cuenta creada con éxito.", user: data.user };
+      } catch (error) {
+        return { ok: false, message: error.message };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [persistSession]
+  );
 
   const logout = useCallback(async () => {
     setUser(null);
+    setToken(null);
     try {
       await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
     } catch (error) {
@@ -94,16 +101,15 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       user,
+      token,
       isAuthenticated: Boolean(user),
       isBooting,
       loading,
       login,
       register,
-      verifyCode,
-      resendCode,
       logout,
     }),
-    [user, isBooting, loading, login, register, verifyCode, resendCode, logout]
+    [user, token, isBooting, loading, login, register, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

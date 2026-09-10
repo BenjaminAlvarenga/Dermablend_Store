@@ -12,17 +12,16 @@ import {
 } from "react-native";
 import { useAuth } from "../hooks/useAuth";
 import { COLORS } from "../utils/theme";
+import { translateAuthError } from "../utils/authErrors";
 import DecorativeBlob from "./welcome/DecorativeBlob";
 
-export default function LoginScreen({ navigation, route }) {
+export default function LoginScreen({ navigation }) {
   const { login, loading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-
-  const justVerified = route?.params?.justVerified;
 
   const handleSubmit = async () => {
     setError("");
@@ -34,7 +33,7 @@ export default function LoginScreen({ navigation, route }) {
 
     const result = await login({ email: email.trim(), password });
     if (!result.ok) {
-      setError(result.message || "Error al iniciar sesión.");
+      setError(translateAuthError(result.message));
     }
   };
 
@@ -56,14 +55,6 @@ export default function LoginScreen({ navigation, route }) {
           <Text style={styles.subtitle}>
             Inicia sesión para continuar con tu compra y tus pedidos.
           </Text>
-
-          {justVerified && (
-            <View style={styles.verifiedBanner}>
-              <Text style={styles.verifiedText}>
-                ✓ Cuenta verificada. Ahora puedes iniciar sesión.
-              </Text>
-            </View>
-          )}
 
           <View style={styles.form}>
             <View style={styles.fieldGroup}>
@@ -182,19 +173,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 20,
-  },
-  verifiedBanner: {
-    backgroundColor: COLORS.successBg,
-    borderColor: COLORS.successBorder,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
-  },
-  verifiedText: {
-    color: COLORS.successText,
-    fontSize: 13,
-    fontWeight: "600",
   },
   form: {
     gap: 16,
