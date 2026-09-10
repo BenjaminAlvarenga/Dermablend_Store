@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import { useRef, useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useAuth } from "../hooks/useAuth";
-import { COLORS } from "../utils/theme";
+import { COLORS, RADIUS, SPACING, FONT_SIZE } from "../utils/theme";
 import { translateAuthError } from "../utils/authErrors";
+import { validateRegisterFields } from "../utils/validators";
+import TextField from "../components/TextField";
+import PrimaryButton from "../components/PrimaryButton";
 import DecorativeBlob from "./welcome/DecorativeBlob";
 
 const SKIN_TYPES = [
@@ -27,9 +28,6 @@ const SKIN_TONES = [
   { value: "morena", label: "Morena" },
 ];
 
-const EMAIL_REGEX = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-const BIRTHDATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
 export default function RegisterScreen({ navigation }) {
   const { register, loading } = useAuth();
 
@@ -41,47 +39,35 @@ export default function RegisterScreen({ navigation }) {
   const [phone, setPhone] = useState("");
   const [skinType, setSkinType] = useState("mixta");
   const [skinTone, setSkinTone] = useState("blanca");
-  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState("");
 
-  const validate = () => {
-    if (
-      !name.trim() ||
-      !email.trim() ||
-      !password.trim() ||
-      !confirmPassword.trim() ||
-      !birthdate.trim() ||
-      !phone.trim()
-    ) {
-      return "Completa todos los campos.";
-    }
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
+  const birthdateRef = useRef(null);
+  const phoneRef = useRef(null);
 
-    if (!EMAIL_REGEX.test(email.trim())) {
-      return "Ingresa un correo electrónico válido.";
-    }
-
-    if (password.length < 6) {
-      return "La contraseña debe tener al menos 6 caracteres.";
-    }
-
-    if (password !== confirmPassword) {
-      return "Las contraseñas no coinciden.";
-    }
-
-    if (!BIRTHDATE_REGEX.test(birthdate.trim()) || isNaN(Date.parse(birthdate.trim()))) {
-      return "Ingresa tu fecha de nacimiento en formato AAAA-MM-DD.";
-    }
-
-    return "";
+  const fieldChangeHandler = (field, setter) => (value) => {
+    setter(value);
+    if (fieldErrors[field]) setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (formError) setFormError("");
   };
 
   const handleSubmit = async () => {
-    setError("");
+    if (loading) return;
+    setFormError("");
 
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+    const errors = validateRegisterFields({
+      name,
+      email,
+      password,
+      confirmPassword,
+      birthdate,
+      phone,
+    });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     const result = await register({
       name: name.trim(),
@@ -94,7 +80,7 @@ export default function RegisterScreen({ navigation }) {
     });
 
     if (!result.ok) {
-      setError(translateAuthError(result.message));
+      setFormError(translateAuthError(result.message));
     }
     // Si el registro es exitoso, AuthContext guarda la sesión y App.js
     // navega automáticamente a la pantalla principal.
@@ -120,80 +106,92 @@ export default function RegisterScreen({ navigation }) {
           </Text>
 
           <View style={styles.form}>
-            <Field label="Nombre completo">
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="Tu nombre"
-                placeholderTextColor={COLORS.inkMuted}
-              />
-            </Field>
+            <TextField
+              label="Nombre completo"
+              value={name}
+              onChangeText={fieldChangeHandler("name", setName)}
+              error={fieldErrors.name}
+              placeholder="Tu nombre"
+              editable={!loading}
+              returnKeyType="next"
+              onSubmitEditing={() => emailRef.current?.focus()}
+            />
 
-            <Field label="Correo electrónico">
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="ejemplo@correo.com"
-                placeholderTextColor={COLORS.inkMuted}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </Field>
+            <TextField
+              ref={emailRef}
+              label="Correo electrónico"
+              value={email}
+              onChangeText={fieldChangeHandler("email", setEmail)}
+              error={fieldErrors.email}
+              placeholder="ejemplo@correo.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+            />
 
-            <Field label="Contraseña">
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Mínimo 6 caracteres"
-                placeholderTextColor={COLORS.inkMuted}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </Field>
+            <TextField
+              ref={passwordRef}
+              label="Contraseña"
+              value={password}
+              onChangeText={fieldChangeHandler("password", setPassword)}
+              error={fieldErrors.password}
+              placeholder="Mínimo 6 caracteres"
+              secureToggle
+              autoCapitalize="none"
+              editable={!loading}
+              returnKeyType="next"
+              onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+            />
 
-            <Field label="Confirmar contraseña">
-              <TextInput
-                style={styles.input}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Repite tu contraseña"
-                placeholderTextColor={COLORS.inkMuted}
-                secureTextEntry
-                autoCapitalize="none"
-              />
-            </Field>
+            <TextField
+              ref={confirmPasswordRef}
+              label="Confirmar contraseña"
+              value={confirmPassword}
+              onChangeText={fieldChangeHandler("confirmPassword", setConfirmPassword)}
+              error={fieldErrors.confirmPassword}
+              placeholder="Repite tu contraseña"
+              secureToggle
+              autoCapitalize="none"
+              editable={!loading}
+              returnKeyType="next"
+              onSubmitEditing={() => birthdateRef.current?.focus()}
+            />
 
-            <Field label="Fecha de nacimiento (AAAA-MM-DD)">
-              <TextInput
-                style={styles.input}
-                value={birthdate}
-                onChangeText={setBirthdate}
-                placeholder="1998-05-20"
-                placeholderTextColor={COLORS.inkMuted}
-                keyboardType="numbers-and-punctuation"
-              />
-            </Field>
+            <TextField
+              ref={birthdateRef}
+              label="Fecha de nacimiento (AAAA-MM-DD)"
+              value={birthdate}
+              onChangeText={fieldChangeHandler("birthdate", setBirthdate)}
+              error={fieldErrors.birthdate}
+              placeholder="1998-05-20"
+              keyboardType="numbers-and-punctuation"
+              editable={!loading}
+              returnKeyType="next"
+              onSubmitEditing={() => phoneRef.current?.focus()}
+            />
 
-            <Field label="Teléfono">
-              <TextInput
-                style={styles.input}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="1234-5678"
-                placeholderTextColor={COLORS.inkMuted}
-                keyboardType="phone-pad"
-              />
-            </Field>
+            <TextField
+              ref={phoneRef}
+              label="Teléfono"
+              value={phone}
+              onChangeText={fieldChangeHandler("phone", setPhone)}
+              error={fieldErrors.phone}
+              placeholder="1234-5678"
+              keyboardType="phone-pad"
+              editable={!loading}
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
+            />
 
             <Field label="Tipo de piel">
               <ChipSelector
                 options={SKIN_TYPES}
                 selected={skinType}
                 onSelect={setSkinType}
+                disabled={loading}
               />
             </Field>
 
@@ -202,38 +200,32 @@ export default function RegisterScreen({ navigation }) {
                 options={SKIN_TONES}
                 selected={skinTone}
                 onSelect={setSkinTone}
+                disabled={loading}
               />
             </Field>
 
-            {!!error && (
+            {!!formError && (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>⚠ {error}</Text>
+                <Text style={styles.errorText}>{formError}</Text>
               </View>
             )}
 
-            <Pressable
+            <PrimaryButton
+              label="Crear cuenta"
+              loadingLabel="Creando cuenta..."
+              loading={loading}
               onPress={handleSubmit}
-              disabled={loading}
-              style={({ pressed }) => [
-                styles.submitButton,
-                pressed && styles.submitButtonPressed,
-                loading && styles.submitButtonDisabled,
-              ]}
-            >
-              {loading ? (
-                <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color={COLORS.ink} />
-                  <Text style={styles.submitButtonText}>Creando cuenta...</Text>
-                </View>
-              ) : (
-                <Text style={styles.submitButtonText}>Crear cuenta</Text>
-              )}
-            </Pressable>
+              style={styles.submitButton}
+            />
           </View>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
-            <Pressable onPress={() => navigation.navigate("Login")} hitSlop={6}>
+            <Pressable
+              onPress={() => navigation.navigate("Login")}
+              hitSlop={6}
+              disabled={loading}
+            >
               <Text style={styles.footerLink}>Inicia sesión</Text>
             </Pressable>
           </View>
@@ -252,7 +244,7 @@ function Field({ label, children }) {
   );
 }
 
-function ChipSelector({ options, selected, onSelect }) {
+function ChipSelector({ options, selected, onSelect, disabled }) {
   return (
     <View style={styles.chipRow}>
       {options.map((option) => {
@@ -261,6 +253,7 @@ function ChipSelector({ options, selected, onSelect }) {
           <Pressable
             key={option.value}
             onPress={() => onSelect(option.value)}
+            disabled={disabled}
             style={[styles.chip, isActive && styles.chipActive]}
           >
             <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
@@ -281,74 +274,64 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 32,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xxl,
   },
   card: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 30,
-    shadowColor: "#3A2418",
+    borderRadius: RADIUS.xl,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xxl,
+    shadowColor: "#2B1B17",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
     elevation: 4,
   },
   tagText: {
     color: COLORS.accent,
-    fontSize: 12,
+    fontSize: FONT_SIZE.sm,
     fontWeight: "700",
     letterSpacing: 1.5,
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   title: {
     color: COLORS.ink,
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: FONT_SIZE.heading,
+    fontWeight: "800",
     marginBottom: 6,
   },
   subtitle: {
     color: COLORS.inkMuted,
-    fontSize: 14,
+    fontSize: FONT_SIZE.base,
     lineHeight: 20,
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   form: {
-    gap: 16,
+    gap: SPACING.lg,
   },
   fieldGroup: {
     gap: 6,
   },
   label: {
     color: COLORS.inkMuted,
-    fontSize: 13,
+    fontSize: FONT_SIZE.base,
     fontWeight: "600",
-  },
-  input: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: COLORS.ink,
-    fontSize: 15,
   },
   chipRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: SPACING.sm,
   },
   chip: {
     backgroundColor: "#FFFFFF",
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: COLORS.cardBorder,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
   },
   chipActive: {
     backgroundColor: COLORS.buttonBg,
@@ -356,7 +339,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: COLORS.inkMuted,
-    fontSize: 13,
+    fontSize: FONT_SIZE.base,
     fontWeight: "600",
   },
   chipTextActive: {
@@ -366,51 +349,30 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.errorBg,
     borderColor: COLORS.errorBorder,
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: RADIUS.sm,
+    padding: SPACING.md,
   },
   errorText: {
     color: COLORS.errorText,
-    fontSize: 13,
+    fontSize: FONT_SIZE.base,
     fontWeight: "500",
   },
   submitButton: {
-    backgroundColor: COLORS.buttonBg,
-    borderRadius: 24,
-    paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  submitButtonPressed: {
-    backgroundColor: COLORS.buttonBgPressed,
-  },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
-  submitButtonText: {
-    color: COLORS.ink,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  loadingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    marginTop: SPACING.xs,
   },
   footer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 24,
+    marginTop: SPACING.xl,
   },
   footerText: {
     color: COLORS.inkMuted,
-    fontSize: 14,
+    fontSize: FONT_SIZE.md,
   },
   footerLink: {
     color: COLORS.accentDark,
-    fontSize: 14,
+    fontSize: FONT_SIZE.md,
     fontWeight: "700",
   },
 });

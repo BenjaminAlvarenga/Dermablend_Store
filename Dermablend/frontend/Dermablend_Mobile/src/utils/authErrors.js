@@ -12,6 +12,14 @@ const MESSAGES = {
   "required registration fields cannot be empty strings": "Ningún campo puede quedar vacío.",
   "password must be at least 6 characters long": "La contraseña debe tener al menos 6 caracteres.",
   "please provide a valid date format for birthdate": "Ingresa una fecha de nacimiento válida (AAAA-MM-DD).",
+
+  // Recuperación de contraseña
+  "email is required": "Ingresa tu correo electrónico.",
+  "email cannot be an empty string": "Ingresa tu correo electrónico.",
+  "token and newpassword are required": "Completa el código de recuperación y la nueva contraseña.",
+  "token and newpassword cannot be empty strings": "Completa el código de recuperación y la nueva contraseña.",
+  "new password must be at least 6 characters long": "La nueva contraseña debe tener al menos 6 caracteres.",
+  "the recovery token is invalid or has expired": "El código de recuperación no es válido o ha expirado. Solicita uno nuevo.",
 };
 
 export function translateAuthError(message) {

@@ -1,4 +1,4 @@
-import { API_URL } from "../config/api";
+import { apiRequest } from "../utils/apiRequest";
 
 const normalizeProduct = (product) => ({
   id: product._id || product.id,
@@ -8,20 +8,25 @@ const normalizeProduct = (product) => ({
   image: product.image || null,
   category: product.category || "",
   shade: product.shade || "",
-  stock: product.stock ?? null,
+  coverageLevel: product.coverage_level || "",
+  skinTypeCompatible: Array.isArray(product.skin_type_compatible)
+    ? product.skin_type_compatible
+    : [],
+  stock: product.stock ?? 0,
 });
 
 export async function getProducts() {
-  const response = await fetch(`${API_URL}/products`);
-
-  if (!response.ok) {
-    throw new Error("No fue posible obtener los productos.");
-  }
-
-  const data = await response.json();
+  const data = await apiRequest("/products");
   if (!Array.isArray(data?.data)) {
-    throw new Error("La respuesta de productos no tiene un formato válido.");
+    throw new Error("No fue posible cargar los productos en este momento.");
   }
-
   return data.data.map(normalizeProduct);
+}
+
+export async function getProductById(id) {
+  const data = await apiRequest(`/products/${id}`);
+  if (!data?.data) {
+    throw new Error("No fue posible cargar este producto.");
+  }
+  return normalizeProduct(data.data);
 }

@@ -10,7 +10,7 @@ export default function SearchBar({ value, onChangeText }) {
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        placeholder="What are you looking for?"
+        placeholder="Buscar productos..."
         placeholderTextColor={COLORS.inkMuted}
       />
     </View>
