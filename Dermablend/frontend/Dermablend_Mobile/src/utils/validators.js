@@ -92,7 +92,11 @@ export function validateRegisterFields({
 export function validateResetPasswordFields({ token, newPassword, confirmPassword }) {
   const errors = {};
 
-  if (isBlank(token)) errors.token = "Ingresa el código de recuperación.";
+  if (isBlank(token)) {
+    errors.token = "Ingresa el código de recuperación.";
+  } else if (!/^\d{6}$/.test(String(token).trim())) {
+    errors.token = "El código debe tener 6 dígitos.";
+  }
 
   if (isBlank(newPassword)) {
     errors.newPassword = "Ingresa tu nueva contraseña.";

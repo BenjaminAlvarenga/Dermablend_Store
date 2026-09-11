@@ -24,17 +24,18 @@ const RecoveryPasswordService = {
             return { message: "Si la cuenta está registrada, se ha enviado un correo con un código de recuperación" };
         }
 
-        // 2. Try Client next
+        // 2. Try Client next — clients also get a short 6-digit code (shown in the
+        // email alongside the reset link) so the mobile app can ask for just a code.
         const client = await Clients.findOne({ email: cleanEmail });
         if (client) {
             if (client.status === "active") {
-                const token = crypto.randomBytes(32).toString("hex");
-                client.recovery_token = token;
+                const code = crypto.randomInt(100000, 1000000).toString();
+                client.recovery_token = code;
                 client.recovery_token_expires = Date.now() + 3600000; // 1 hour
                 await client.save();
-                await sendRecoveryEmail(cleanEmail, token);
+                await sendRecoveryEmail(cleanEmail, code);
             }
-            return { message: "Si la cuenta está registrada, se ha enviado un correo con instrucciones de recuperación" };
+            return { message: "Si la cuenta está registrada, se ha enviado un correo con un código de recuperación" };
         }
 
         // Fallback for non-existent emails (always success for security)

@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       const response = await recoveryService.requestRecovery(email);
       setConfirmationMessage(
         response?.message ||
-          "Si la cuenta existe, recibirás un correo con instrucciones para restablecer tu contraseña."
+          "Si la cuenta existe, recibirás un correo con un código para restablecer tu contraseña."
       );
       setSent(true);
     } catch (err) {
@@ -62,8 +62,8 @@ export default function ForgotPasswordScreen({ navigation }) {
               <Text style={styles.confirmationTitle}>Revisa tu correo</Text>
               <Text style={styles.confirmationText}>{confirmationMessage}</Text>
               <Text style={styles.confirmationHint}>
-                El enlace incluye un código de recuperación válido por 1 hora. Si ya lo tienes,
-                continúa para establecer tu nueva contraseña.
+                El código de recuperación es de 6 dígitos y es válido por 1 hora. Si ya lo
+                tienes, continúa para establecer tu nueva contraseña.
               </Text>
 
               <PrimaryButton
@@ -82,7 +82,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             <View style={styles.card}>
               <Text style={styles.title}>¿Olvidaste tu contraseña?</Text>
               <Text style={styles.subtitle}>
-                Ingresa el correo asociado a tu cuenta y te enviaremos instrucciones para
+                Ingresa el correo asociado a tu cuenta y te enviaremos un código para
                 restablecer tu contraseña.
               </Text>
 

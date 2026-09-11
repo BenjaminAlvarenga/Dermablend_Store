@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -84,28 +83,25 @@ export default function ResetPasswordScreen({ navigation }) {
             <View style={styles.card}>
               <Text style={styles.title}>Establece tu nueva contraseña</Text>
               <Text style={styles.subtitle}>
-                Pega el código de recuperación que recibiste por correo y elige una nueva
+                Ingresa el código de 6 dígitos que recibiste por correo y elige una nueva
                 contraseña.
               </Text>
 
               <View style={styles.form}>
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.label}>Código de recuperación</Text>
-                  <TextInput
-                    style={[styles.tokenInput, fieldErrors.token && styles.tokenInputError]}
-                    value={token}
-                    onChangeText={fieldChangeHandler("token", setToken)}
-                    placeholder="Pega aquí el código recibido por correo"
-                    placeholderTextColor={COLORS.inkFaint}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    multiline
-                    editable={!loading}
-                    returnKeyType="next"
-                    onSubmitEditing={() => passwordRef.current?.focus()}
-                  />
-                  {!!fieldErrors.token && <Text style={styles.errorText}>{fieldErrors.token}</Text>}
-                </View>
+                <TextField
+                  label="Código de recuperación"
+                  value={token}
+                  onChangeText={fieldChangeHandler("token", setToken)}
+                  error={fieldErrors.token}
+                  placeholder="Código de 6 dígitos"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!loading}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                />
 
                 <TextField
                   ref={passwordRef}
@@ -192,30 +188,6 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: SPACING.lg,
-  },
-  fieldGroup: {
-    gap: 6,
-  },
-  label: {
-    color: COLORS.inkMuted,
-    fontSize: FONT_SIZE.base,
-    fontWeight: "600",
-  },
-  tokenInput: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: COLORS.cardBorder,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md + 2,
-    paddingVertical: SPACING.md,
-    minHeight: 72,
-    textAlignVertical: "top",
-    color: COLORS.ink,
-    fontSize: FONT_SIZE.base,
-  },
-  tokenInputError: {
-    borderColor: COLORS.errorBorder,
-    backgroundColor: COLORS.errorBg,
   },
   errorContainer: {
     backgroundColor: COLORS.errorBg,
