@@ -57,8 +57,8 @@ Dermablend_Store/
 ### `Dermablend/backend/.env`
 
 ```env
-DB_URI="mongodb://localhost:27017/PriceSmartDB"
-PORT="3000"
+DB_URI=""
+PORT=""
 
 JWT_SECRET_KEY="tu-clave-secreta"
 
